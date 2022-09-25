@@ -1,0 +1,25 @@
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+#demo-3d-canvas {
+  width: 800px;
+  height: 400px;
+}
+
+#xwing-canvas {
+  width: 100%;
+  height: 600px;
+}
+
+#tab-content-container {
+  padding: 15px;
+  margin-top: 50px;
+  min-width: 820px;
+  text-align: center;
+}
+
+.form-control {
+  margin-top: 20px;
+}
