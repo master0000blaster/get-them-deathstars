@@ -1,3 +1,3 @@
-# get-them-deathstars
+# Get them Death Stars!
 
 Just having some fun. :)
