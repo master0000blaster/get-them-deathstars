@@ -7,4 +7,4 @@ D = roll right <br/>
 W = go forward <br/>
 Use mouse to steer <br/>
 
-(||||---- DEMO ----||||)[https://get-them-deathstars-dws4.vercel.app/]
+[||||---- DEMO ----||||](https://get-them-deathstars-dws4.vercel.app/)
