@@ -29,12 +29,12 @@ export default function XWingScene(props: XWingSceneProps) {
         camera.keysLeft = [];
         camera.keysRight = [];
         camera.speed = 12;
-        camera.inertia = 0.8;
+        camera.inertia = 0.87;
     };
 
     // is called every frame
     const sceneBeforeRender = () => {
-        if (xwingMeshRef.current && sceneRef.current && cameraRef.current) {
+        if (xwingMeshRef.current && cameraRef.current) {
 
             const rotationSpeed: number = 0.03;
 
@@ -130,7 +130,7 @@ export default function XWingScene(props: XWingSceneProps) {
             if (evt.sourceEvent.type == "keydown") {
 
                 const config = new ControlsConfig();
-                switch (evt.sourceEvent.key) {
+                switch (evt.sourceEvent.key.toLowerCase()) {
                     case config.RollLeft: {
                         setLeftPressed(true);
                         break;
@@ -151,7 +151,7 @@ export default function XWingScene(props: XWingSceneProps) {
             if (evt.sourceEvent.type == "keyup") {
 
                 const config = new ControlsConfig();
-                switch (evt.sourceEvent.key) {
+                switch (evt.sourceEvent.key.toLowerCase()) {
                     case config.RollLeft: {
                         setLeftPressed(false);
                         break;
