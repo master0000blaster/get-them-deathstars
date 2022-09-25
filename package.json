@@ -2,6 +2,7 @@
   "name": "react-typescript",
   "version": "1.0.0",
   "description": "React and TypeScript example starter project",
+  "homepage": "https://master0000blaster.github.io/get-them-deathstars"
   "keywords": [
     "typescript",
     "react",
@@ -25,6 +26,7 @@
     "@babylonjs/loaders": "^5.23.0",
     "@types/react": "17.0.20",
     "@types/react-dom": "17.0.9",
+    "gh-pages": "^4.0.0",
     "typescript": "4.4.2"
   },
   "scripts": {
