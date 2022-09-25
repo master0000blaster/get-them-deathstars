@@ -110,7 +110,7 @@ export default function XWingScene(props: XWingSceneProps) {
 
         createPointerLock(scene);
 
-        SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'xwing.glb', scene)
+        SceneLoader.ImportMeshAsync('', 'https://master0000blaster.github.io/get-them-deathstars/static/3dmodels/', 'xwing.glb', scene)
             .then((result: ISceneLoaderAsyncResult) => {
                 if (cameraRef.current) {
                     xwingMeshRef.current = result.meshes[0];
@@ -118,7 +118,7 @@ export default function XWingScene(props: XWingSceneProps) {
                 }
             });
 
-        SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'deathstar.glb', scene)
+        SceneLoader.ImportMeshAsync('', 'https://master0000blaster.github.io/get-them-deathstars/static/3dmodels/', 'deathstar.glb', scene)
             .then((result: ISceneLoaderAsyncResult) => {
                 setupDeathStars(result.meshes[0]);
             });
@@ -184,7 +184,7 @@ export default function XWingScene(props: XWingSceneProps) {
                         intensity={0.7}
                         direction={new Vector3(0.5, 1, 0)}
                     />
-                    <Skybox size={10000} rootUrl="/static/images/space-skybox/" name={'skybox'} />
+                    <Skybox size={10000} rootUrl="https://master0000blaster.github.io/get-them-deathstars/static/images/space-skybox/" name={'skybox'} />
                 </Scene>
             </Engine>
         </div>
