@@ -1,56 +1,52 @@
 import "../styles.css";
 import { Engine, Scene, SceneEventArgs, Skybox } from "react-babylonjs";
 import * as core from "@babylonjs/core";
-import { AbstractMesh, ActionManager, ExecuteCodeAction, FlyCamera, ISceneLoaderAsyncResult, Nullable, SceneLoader } from "@babylonjs/core";
+import { AbstractMesh, ActionManager, Color3, Color4, ExecuteCodeAction, FlyCamera, ISceneLoaderAsyncResult, MeshBuilder, Nullable, PlaySoundAction, PointerEventTypes, SceneLoader, Sound, StandardMaterial } from "@babylonjs/core";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import "@babylonjs/loaders";
 import { useRef, useState } from "react";
 import ControlsConfig from "../controls-config";
+import AssetManager from "../managers/asset-manager";
+import GameManager from "../managers/game-manager";
 
 interface XWingSceneProps {
 };
 
 export default function XWingScene(props: XWingSceneProps) {
 
-    const cameraRef = useRef<FlyCamera>(null);
-    const xwingMeshRef = useRef<AbstractMesh>();
-    const deathstarMeshesRef = useRef<Nullable<AbstractMesh>[]>([]);
-    const sceneRef = useRef<core.Scene>();
-    const canvasRef = useRef<HTMLCanvasElement>();
+    const assetManager = useRef<AssetManager>(new AssetManager());
+    const gameManager = useRef<GameManager>(new GameManager());
     const [leftPressed, setLeftPressed] = useState(false);
     const [rightPressed, setRightPressed] = useState(false);
 
-    const cameraCreated = (camera: core.FlyCamera, scene: core.Scene) => {        
+    const cameraCreated = (camera: core.FlyCamera, scene: core.Scene) => {
 
+        assetManager.current.flyCamera = camera;
+        camera.lockedTarget = assetManager.current.deathStarMeshes[24];
         camera.inputs.clear();
-        camera.inputs.addMouse();
-        camera.inputs.addKeyboard();
-        camera.keysUp.push(87);
-        camera.keysLeft = [];
-        camera.keysRight = [];
-        camera.speed = 12;
-        camera.inertia = 0.87;
     };
 
     // is called every frame
     const sceneBeforeRender = () => {
-        if (xwingMeshRef.current && cameraRef.current) {
+        if (!gameManager.current.isPaused) {
+            if (assetManager.current.xwingMesh && assetManager.current.flyCamera) {
 
-            const rotationSpeed: number = 0.03;
+                const rotationSpeed: number = 0.03;
 
-            if (leftPressed) {
-                xwingMeshRef.current.rotation.z += rotationSpeed;
-                cameraRef.current.rotation.z += rotationSpeed;
-            }
+                if (leftPressed) {
+                    assetManager.current.xwingMesh.rotation.z += rotationSpeed;
+                    assetManager.current.flyCamera.rotation.z += rotationSpeed;
+                }
 
-            if (rightPressed) {
-                xwingMeshRef.current.rotation.z -= rotationSpeed;
-                cameraRef.current.rotation.z -= rotationSpeed;
+                if (rightPressed) {
+                    assetManager.current.xwingMesh.rotation.z -= rotationSpeed;
+                    assetManager.current.flyCamera.rotation.z -= rotationSpeed;
+                }
             }
         }
     };
 
-    function setupDeathStars(deathStarMesh: AbstractMesh) {
+    const setupDeathStars = (deathStarMesh: AbstractMesh) => {
 
         const xIncrement: number = 100;
         const groupOffsetX: number = 400;
@@ -59,18 +55,18 @@ export default function XWingScene(props: XWingSceneProps) {
         const scale: number = 3;
 
         deathStarMesh.name = 'deathstar0';
-        deathstarMeshesRef.current.push(deathStarMesh);
+        assetManager.current.deathStarMeshes?.push(deathStarMesh);
 
         for (let i: number = 0; i < 49; i++) {
             const newDeathStar = deathStarMesh.clone('deathstar' + (i + 1), null, false);
-            deathstarMeshesRef.current.push(newDeathStar);
+            assetManager.current.deathStarMeshes.push(newDeathStar);
         }
 
         let deathStarLevel = 0;
         let xPos = 0;
 
         for (let i: number = 0; i < 50; i++) {
-            const newDeathStar = deathstarMeshesRef.current[i];
+            const newDeathStar = assetManager.current.deathStarMeshes[i];
 
             if (i > 0 && i % 10 === 0) {
                 deathStarLevel += xIncrement;
@@ -81,7 +77,7 @@ export default function XWingScene(props: XWingSceneProps) {
                 xPos += xIncrement;
                 let randY = Math.abs(Math.random() * 7) + 90;
 
-                deathstarMeshesRef.current.push(newDeathStar);
+                assetManager.current.deathStarMeshes.push(newDeathStar);
                 newDeathStar.position = new Vector3(xPos - groupOffsetX, deathStarLevel - groupOffsetY, groupZ);
                 newDeathStar.rotation = new Vector3(0, randY, 0);
                 newDeathStar.scaling = new Vector3(scale, scale, scale);
@@ -89,8 +85,8 @@ export default function XWingScene(props: XWingSceneProps) {
         }
     }
 
-    const createPointerLock = function (scene: core.Scene) {
-        const canvas = scene.getEngine().getRenderingCanvas();
+    const createPointerLock = (scene: core.Scene | undefined) => {
+        const canvas = scene?.getEngine().getRenderingCanvas();
 
         if (canvas) {
             canvas.addEventListener("click", event => {
@@ -102,32 +98,95 @@ export default function XWingScene(props: XWingSceneProps) {
         }
     };
 
+    const introEnded = () => {
+        createPointerLock(assetManager.current.scene);
+
+        if (assetManager.current.flyCamera) {
+            assetManager.current.flyCamera.lockedTarget = undefined;
+            assetManager.current.flyCamera.inputs.addMouse();
+            assetManager.current.flyCamera.inputs.addKeyboard();
+            assetManager.current.flyCamera.keysUp.push(87);
+            assetManager.current.flyCamera.keysLeft = [];
+            assetManager.current.flyCamera.keysRight = [];
+            assetManager.current.flyCamera.speed = 12;
+            assetManager.current.flyCamera.inertia = 0.87;
+        }
+
+        if (assetManager.current.xwingMesh && assetManager.current.flyCamera) {
+            assetManager.current.xwingMesh.parent = assetManager.current.flyCamera;
+        }
+
+        gameManager.current.isPaused = false;
+    }
+
+    const fireLaser = () => {
+
+    };
+
     const onSceneMount = (args: SceneEventArgs) => {
 
         const scene = args.scene;
-        sceneRef.current = scene;
-        canvasRef.current = args.canvas;
+        assetManager.current.scene = scene;
+        assetManager.current.canvas = args.canvas;
 
-        createPointerLock(scene);
+        assetManager.current.pewSound = new Sound('pew', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: false });
+        assetManager.current.introAudio = new Sound('pew', '/static/sounds/intro.mp3', scene, null, { loop: false, autoplay: true });
+        assetManager.current.outroAudio = new Sound('pew', '/static/sounds/outro.mp3', scene, null, { loop: false, autoplay: false });
+        assetManager.current.introAudio.onended = introEnded;
+
+        const laserMesh: AbstractMesh | undefined = MeshBuilder.CreateCylinder('laser', {
+            diameter: 1,
+            height: 2
+        });
+
+        const laserMaterial = new StandardMaterial("material", scene);
+        laserMaterial.specularPower = 5;
+        laserMaterial.diffuseColor =  Color3.FromHexString('#ff0000');
+        laserMaterial.emissiveColor = Color3.FromHexString('#ff0000');
+        laserMaterial.useEmissiveAsIllumination = true;
+        laserMesh.material = laserMaterial;
+
+        laserMesh.rotation.x = Math.PI/2;
+        //laserMesh.isVisible = false;
 
         SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'xwing.glb', scene)
-            .then((result: ISceneLoaderAsyncResult) => {
-                if (cameraRef.current) {
-                    xwingMeshRef.current = result.meshes[0];
-                    xwingMeshRef.current.parent = cameraRef.current;
-                }
-            });
+        .then((result: ISceneLoaderAsyncResult) => {
+            if (assetManager.current.flyCamera) {
+                assetManager.current.xwingMesh = result.meshes[0];
+                laserMesh.parent = assetManager.current.xwingMesh;
+            }
+        });
 
-        SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'deathstar.glb', scene)
-            .then((result: ISceneLoaderAsyncResult) => {
-                setupDeathStars(result.meshes[0]);
-            });
+    SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'deathstar.glb', scene)
+        .then((result: ISceneLoaderAsyncResult) => {
+            setupDeathStars(result.meshes[0]);
+        });
 
         scene.actionManager = new ActionManager(scene);
 
+        scene.onPointerObservable.add((pointerInfo: core.PointerInfo) => {
+
+            if (!gameManager.current.isPaused) {
+                switch (pointerInfo.type) {
+                    case PointerEventTypes.POINTERDOWN: {
+                        if (gameManager.current.screenCapHasClicked) {
+                            assetManager.current.pewSound?.play(0);
+                            fireLaser();
+                        }
+
+                        //do not register the first click. it is the screen cap click.
+                        gameManager.current.screenCapHasClicked = true;
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+        });
+
         // keydown
         scene.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, function (evt) {
-            if (evt.sourceEvent.type == "keydown") {
+            if (evt.sourceEvent.type == "keydown" && !gameManager.current.isPaused) {
 
                 const config = new ControlsConfig();
                 switch (evt.sourceEvent.key.toLowerCase()) {
@@ -148,7 +207,7 @@ export default function XWingScene(props: XWingSceneProps) {
 
         // keyup
         scene.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, function (evt) {
-            if (evt.sourceEvent.type == "keyup") {
+            if (evt.sourceEvent.type == "keyup" && !gameManager.current.isPaused) {
 
                 const config = new ControlsConfig();
                 switch (evt.sourceEvent.key.toLowerCase()) {
@@ -172,7 +231,7 @@ export default function XWingScene(props: XWingSceneProps) {
         <div>
             <Engine antialias adaptToDeviceRatio canvasId="xwing-canvas">
                 <Scene beforeRender={sceneBeforeRender} onSceneMount={onSceneMount}>
-                    <flyCamera onCreated={cameraCreated} ref={cameraRef} name="xwingcamera"
+                    <flyCamera onCreated={cameraCreated} name="xwingcamera"
                         position={new Vector3(0, 0, -30)}
                         bankedTurn={true}
                         rollCorrect={0}
