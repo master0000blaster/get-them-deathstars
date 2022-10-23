@@ -1,4 +1,4 @@
 export default class GameManager {
-    isPaused: boolean = false;
+    isPaused: boolean = true;
     screenCapHasClicked: boolean = false;
 }

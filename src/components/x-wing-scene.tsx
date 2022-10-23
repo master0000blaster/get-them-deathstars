@@ -29,21 +29,70 @@ export default function XWingScene(props: XWingSceneProps) {
     // is called every frame
     const sceneBeforeRender = () => {
         if (!gameManager.current.isPaused) {
-            if (assetManager.current.xwingMesh && assetManager.current.flyCamera) {
+
+            const { xwingMesh, flyCamera } = assetManager.current;
+            if (xwingMesh && flyCamera) {
 
                 const rotationSpeed: number = 0.03;
 
                 if (leftPressed) {
-                    assetManager.current.xwingMesh.rotation.z += rotationSpeed;
-                    assetManager.current.flyCamera.rotation.z += rotationSpeed;
+                    xwingMesh.rotation.z += rotationSpeed;
+                    flyCamera.rotation.z += rotationSpeed;
                 }
 
                 if (rightPressed) {
-                    assetManager.current.xwingMesh.rotation.z -= rotationSpeed;
-                    assetManager.current.flyCamera.rotation.z -= rotationSpeed;
+                    xwingMesh.rotation.z -= rotationSpeed;
+                    flyCamera.rotation.z -= rotationSpeed;
                 }
             }
         }
+    };
+
+    const createLaserBeam = (): void => {
+
+        const laserMesh: AbstractMesh | undefined = MeshBuilder.CreateCylinder('laser', {
+            diameter: 1,
+            height: 2
+        });
+
+        const laserMaterial = new StandardMaterial("material", assetManager.current.scene);
+        laserMaterial.specularPower = 5;
+        laserMaterial.diffuseColor = Color3.FromHexString('#ff0000');
+        laserMaterial.emissiveColor = Color3.FromHexString('#ff0000');
+        laserMaterial.useEmissiveAsIllumination = true;
+        laserMesh.material = laserMaterial;
+
+        laserMesh.rotation.x = Math.PI / 2;
+        //laserMesh.isVisible = false;
+
+        assetManager.current.laserMesh = laserMesh;
+
+        const frameRate = 10;
+
+        const xSlide = new core.Animation(
+            "xSlide",
+            "position.z",
+            frameRate,
+            core.Animation.ANIMATIONTYPE_FLOAT,
+            core.Animation.ANIMATIONLOOPMODE_CYCLE);
+
+        const keyFrames: core.IAnimationKey[] = [];
+
+        keyFrames.push({
+            frame: 0,
+            value: 1
+        });
+
+        keyFrames.push({
+            frame: 4 * frameRate,
+            value: 100
+        });
+
+        xSlide.setKeys(keyFrames);
+
+        laserMesh.animations.push(xSlide);
+
+        assetManager.current.scene?.beginAnimation(laserMesh, 0, 2 * frameRate, true);
     };
 
     const setupDeathStars = (deathStarMesh: AbstractMesh) => {
@@ -53,20 +102,21 @@ export default function XWingScene(props: XWingSceneProps) {
         const groupOffsetY: number = 200;
         const groupZ: number = 1000;
         const scale: number = 3;
+        const { deathStarMeshes } = assetManager.current;
 
         deathStarMesh.name = 'deathstar0';
-        assetManager.current.deathStarMeshes?.push(deathStarMesh);
+        deathStarMeshes?.push(deathStarMesh);
 
         for (let i: number = 0; i < 49; i++) {
             const newDeathStar = deathStarMesh.clone('deathstar' + (i + 1), null, false);
-            assetManager.current.deathStarMeshes.push(newDeathStar);
+            deathStarMeshes.push(newDeathStar);
         }
 
         let deathStarLevel = 0;
         let xPos = 0;
 
         for (let i: number = 0; i < 50; i++) {
-            const newDeathStar = assetManager.current.deathStarMeshes[i];
+            const newDeathStar = deathStarMeshes[i];
 
             if (i > 0 && i % 10 === 0) {
                 deathStarLevel += xIncrement;
@@ -77,7 +127,7 @@ export default function XWingScene(props: XWingSceneProps) {
                 xPos += xIncrement;
                 let randY = Math.abs(Math.random() * 7) + 90;
 
-                assetManager.current.deathStarMeshes.push(newDeathStar);
+                deathStarMeshes.push(newDeathStar);
                 newDeathStar.position = new Vector3(xPos - groupOffsetX, deathStarLevel - groupOffsetY, groupZ);
                 newDeathStar.rotation = new Vector3(0, randY, 0);
                 newDeathStar.scaling = new Vector3(scale, scale, scale);
@@ -99,68 +149,56 @@ export default function XWingScene(props: XWingSceneProps) {
     };
 
     const introEnded = () => {
-        createPointerLock(assetManager.current.scene);
 
-        if (assetManager.current.flyCamera) {
-            assetManager.current.flyCamera.lockedTarget = undefined;
-            assetManager.current.flyCamera.inputs.addMouse();
-            assetManager.current.flyCamera.inputs.addKeyboard();
-            assetManager.current.flyCamera.keysUp.push(87);
-            assetManager.current.flyCamera.keysLeft = [];
-            assetManager.current.flyCamera.keysRight = [];
-            assetManager.current.flyCamera.speed = 12;
-            assetManager.current.flyCamera.inertia = 0.87;
+        const { flyCamera, xwingMesh, scene } = assetManager.current;
+
+        createPointerLock(scene);
+
+        if (flyCamera) {
+            flyCamera.lockedTarget = undefined;
+            flyCamera.inputs.addMouse();
+            flyCamera.inputs.addKeyboard();
+            flyCamera.keysUp.push(87);
+            flyCamera.keysLeft = [];
+            flyCamera.keysRight = [];
+            flyCamera.speed = 12;
+            flyCamera.inertia = 0.87;
         }
 
-        if (assetManager.current.xwingMesh && assetManager.current.flyCamera) {
-            assetManager.current.xwingMesh.parent = assetManager.current.flyCamera;
+        if (xwingMesh && flyCamera) {
+            xwingMesh.parent = flyCamera;
         }
 
         gameManager.current.isPaused = false;
     }
 
     const fireLaser = () => {
-
+        //addf
     };
 
     const onSceneMount = (args: SceneEventArgs) => {
 
-        const scene = args.scene;
-        assetManager.current.scene = scene;
+        assetManager.current.scene = args.scene;
         assetManager.current.canvas = args.canvas;
 
+        createLaserBeam();
+        const { scene } = assetManager.current;
+        gameManager.current.isPaused = true;
+
         assetManager.current.pewSound = new Sound('pew', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: false });
-        assetManager.current.introAudio = new Sound('pew', '/static/sounds/intro.mp3', scene, null, { loop: false, autoplay: true });
+        assetManager.current.introAudio = new Sound('pew', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: true });
         assetManager.current.outroAudio = new Sound('pew', '/static/sounds/outro.mp3', scene, null, { loop: false, autoplay: false });
         assetManager.current.introAudio.onended = introEnded;
 
-        const laserMesh: AbstractMesh | undefined = MeshBuilder.CreateCylinder('laser', {
-            diameter: 1,
-            height: 2
-        });
-
-        const laserMaterial = new StandardMaterial("material", scene);
-        laserMaterial.specularPower = 5;
-        laserMaterial.diffuseColor =  Color3.FromHexString('#ff0000');
-        laserMaterial.emissiveColor = Color3.FromHexString('#ff0000');
-        laserMaterial.useEmissiveAsIllumination = true;
-        laserMesh.material = laserMaterial;
-
-        laserMesh.rotation.x = Math.PI/2;
-        //laserMesh.isVisible = false;
-
         SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'xwing.glb', scene)
-        .then((result: ISceneLoaderAsyncResult) => {
-            if (assetManager.current.flyCamera) {
+            .then((result: ISceneLoaderAsyncResult) => {
                 assetManager.current.xwingMesh = result.meshes[0];
-                laserMesh.parent = assetManager.current.xwingMesh;
-            }
-        });
+            });
 
-    SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'deathstar.glb', scene)
-        .then((result: ISceneLoaderAsyncResult) => {
-            setupDeathStars(result.meshes[0]);
-        });
+        SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'deathstar.glb', scene)
+            .then((result: ISceneLoaderAsyncResult) => {
+                setupDeathStars(result.meshes[0]);
+            });
 
         scene.actionManager = new ActionManager(scene);
 
