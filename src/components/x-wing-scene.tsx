@@ -1,7 +1,7 @@
 import "../styles.css";
 import { Engine, Scene, SceneEventArgs, Skybox } from "react-babylonjs";
 import * as core from "@babylonjs/core";
-import { AbstractMesh, ActionManager, Color3, Color4, ExecuteCodeAction, FlyCamera, ISceneLoaderAsyncResult, MeshBuilder, Nullable, PlaySoundAction, PointerEventTypes, SceneLoader, Sound, StandardMaterial } from "@babylonjs/core";
+import { AbstractMesh, ActionManager, AnimationEvent, Color3, Color4, ExecuteCodeAction, FlyCamera, ISceneLoaderAsyncResult, Mesh, MeshBuilder, Nullable, PlaySoundAction, PointerEventTypes, Ray, SceneLoader, Sound, StandardMaterial } from "@babylonjs/core";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import "@babylonjs/loaders";
 import { useRef, useState } from "react";
@@ -18,6 +18,7 @@ export default function XWingScene(props: XWingSceneProps) {
     const gameManager = useRef<GameManager>(new GameManager());
     const [leftPressed, setLeftPressed] = useState(false);
     const [rightPressed, setRightPressed] = useState(false);
+    const [laserFramerate, setLaserFramerate] = useState(15);
 
     const cameraCreated = (camera: core.FlyCamera, scene: core.Scene) => {
 
@@ -46,53 +47,6 @@ export default function XWingScene(props: XWingSceneProps) {
                 }
             }
         }
-    };
-
-    const createLaserBeam = (): void => {
-
-        const laserMesh: AbstractMesh | undefined = MeshBuilder.CreateCylinder('laser', {
-            diameter: 1,
-            height: 2
-        });
-
-        const laserMaterial = new StandardMaterial("material", assetManager.current.scene);
-        laserMaterial.specularPower = 5;
-        laserMaterial.diffuseColor = Color3.FromHexString('#ff0000');
-        laserMaterial.emissiveColor = Color3.FromHexString('#ff0000');
-        laserMaterial.useEmissiveAsIllumination = true;
-        laserMesh.material = laserMaterial;
-
-        laserMesh.rotation.x = Math.PI / 2;
-        //laserMesh.isVisible = false;
-
-        assetManager.current.laserMesh = laserMesh;
-
-        const frameRate = 10;
-
-        const xSlide = new core.Animation(
-            "xSlide",
-            "position.z",
-            frameRate,
-            core.Animation.ANIMATIONTYPE_FLOAT,
-            core.Animation.ANIMATIONLOOPMODE_CYCLE);
-
-        const keyFrames: core.IAnimationKey[] = [];
-
-        keyFrames.push({
-            frame: 0,
-            value: 1
-        });
-
-        keyFrames.push({
-            frame: 4 * frameRate,
-            value: 100
-        });
-
-        xSlide.setKeys(keyFrames);
-
-        laserMesh.animations.push(xSlide);
-
-        assetManager.current.scene?.beginAnimation(laserMesh, 0, 2 * frameRate, true);
     };
 
     const setupDeathStars = (deathStarMesh: AbstractMesh) => {
@@ -172,19 +126,91 @@ export default function XWingScene(props: XWingSceneProps) {
         gameManager.current.isPaused = false;
     }
 
+    const createLaserBeam = (): AbstractMesh => {
+
+        const { flyCamera, xwingMesh } = assetManager.current;
+        const laserMesh: Mesh = MeshBuilder.CreateCylinder('laser', {
+            diameter: 1,
+            height: 2
+        });
+
+        const laserMaterial = new StandardMaterial("material", assetManager.current.scene);
+        laserMaterial.specularPower = 5;
+        laserMaterial.diffuseColor = Color3.FromHexString('#ff0000');
+        laserMaterial.emissiveColor = Color3.FromHexString('#ff0000');
+        laserMaterial.useEmissiveAsIllumination = true;
+        laserMesh.material = laserMaterial;
+
+        laserMesh.rotation.x = Math.PI / 2;
+        let rayEndPos = Vector3.Up();
+        let initialPos = Vector3.Up();
+
+        if (flyCamera) { 
+                   
+            laserMesh.alignWithNormal(flyCamera.getForwardRay().direction)
+            initialPos = flyCamera.position.clone();
+            const ray = new core.Ray(initialPos, flyCamera.getForwardRay().direction.clone(), 1000);
+            rayEndPos = ray.origin.clone().add(ray.direction.scale(1000));
+        }
+
+        const zSlide = new core.Animation(
+            "zSlide",
+            "position",
+            laserFramerate,
+            core.Animation.ANIMATIONTYPE_VECTOR3,
+            core.Animation.ANIMATIONLOOPMODE_CONSTANT);
+
+        const keyFrames: core.IAnimationKey[] = [];
+
+        if (flyCamera) {
+            keyFrames.push({
+                frame: 0,
+                value: initialPos
+            });
+
+            keyFrames.push({
+                frame: 4 * laserFramerate,
+                value: rayEndPos
+            });
+        }
+
+        zSlide.setKeys(keyFrames);
+        laserMesh.animations.push(zSlide);
+
+        return laserMesh;
+    };
+
     const fireLaser = () => {
-        //addf
+        const { scene, flyCamera } = assetManager.current;
+        const laserMesh = createLaserBeam();
+
+        // if (flyCamera) {
+        //     laserMesh.setDirection(flyCamera?.rotation);
+        //     laserMesh.position.x = flyCamera?.position.x;
+        //     laserMesh.position.y = flyCamera?.position.y;
+        //     laserMesh.position.z = flyCamera?.position.z;
+
+        //     // laserMesh.rotation.x = xwingMesh?.rotation.x;
+        //     // laserMesh.rotation.y = xwingMesh?.rotation.y;
+        //     // laserMesh.rotation.z = xwingMesh?.rotation.z;;            
+        // }
+
+        const animatable = scene?.beginAnimation(laserMesh, 0, 2 * laserFramerate, false);
+
+        if (animatable) {
+            animatable.onAnimationEnd = () => {
+                laserMesh.dispose();
+            };
+        }
     };
 
     const onSceneMount = (args: SceneEventArgs) => {
 
         assetManager.current.scene = args.scene;
         assetManager.current.canvas = args.canvas;
-
-        createLaserBeam();
         const { scene } = assetManager.current;
-        gameManager.current.isPaused = true;
 
+        gameManager.current.isPaused = true;
         assetManager.current.pewSound = new Sound('pew', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: false });
         assetManager.current.introAudio = new Sound('pew', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: true });
         assetManager.current.outroAudio = new Sound('pew', '/static/sounds/outro.mp3', scene, null, { loop: false, autoplay: false });

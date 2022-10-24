@@ -11,5 +11,4 @@ export default class AssetManager {
     pewSound: Sound | undefined;
     introAudio: Sound | undefined;
     outroAudio: Sound | undefined;
-    laserMesh: AbstractMesh | undefined;
 }
