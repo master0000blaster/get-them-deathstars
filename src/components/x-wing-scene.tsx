@@ -6,7 +6,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import "@babylonjs/loaders";
 import { useRef, useState } from "react";
 import ControlsConfig from "../controls-config";
-import AssetManager from "../managers/asset-manager";
+import AssetManager, { LaserManager } from "../managers/asset-manager";
 import GameManager from "../managers/game-manager";
 
 interface XWingSceneProps {
@@ -15,10 +15,10 @@ interface XWingSceneProps {
 export default function XWingScene(props: XWingSceneProps) {
 
     const assetManager = useRef<AssetManager>(new AssetManager());
+    const laserManager = useRef<LaserManager>(new LaserManager());
     const gameManager = useRef<GameManager>(new GameManager());
     const [leftPressed, setLeftPressed] = useState(false);
     const [rightPressed, setRightPressed] = useState(false);
-    const [laserFramerate, setLaserFramerate] = useState(15);
 
     const cameraCreated = (camera: core.FlyCamera, scene: core.Scene) => {
 
@@ -30,6 +30,8 @@ export default function XWingScene(props: XWingSceneProps) {
     // is called every frame
     const sceneBeforeRender = () => {
         if (!gameManager.current.isPaused) {
+
+            laserManager.current.advanceLaserBeamPositions();
 
             const { xwingMesh, flyCamera } = assetManager.current;
             if (xwingMesh && flyCamera) {
@@ -115,7 +117,7 @@ export default function XWingScene(props: XWingSceneProps) {
             flyCamera.keysUp.push(87);
             flyCamera.keysLeft = [];
             flyCamera.keysRight = [];
-            flyCamera.speed = 12;
+            flyCamera.speed = 4;
             flyCamera.inertia = 0.87;
         }
 
@@ -126,82 +128,8 @@ export default function XWingScene(props: XWingSceneProps) {
         gameManager.current.isPaused = false;
     }
 
-    const createLaserBeam = (): AbstractMesh => {
-
-        const { flyCamera, xwingMesh } = assetManager.current;
-        const laserMesh: Mesh = MeshBuilder.CreateCylinder('laser', {
-            diameter: 1,
-            height: 2
-        });
-
-        const laserMaterial = new StandardMaterial("material", assetManager.current.scene);
-        laserMaterial.specularPower = 5;
-        laserMaterial.diffuseColor = Color3.FromHexString('#ff0000');
-        laserMaterial.emissiveColor = Color3.FromHexString('#ff0000');
-        laserMaterial.useEmissiveAsIllumination = true;
-        laserMesh.material = laserMaterial;
-
-        laserMesh.rotation.x = Math.PI / 2;
-        let rayEndPos = Vector3.Up();
-        let initialPos = Vector3.Up();
-
-        if (flyCamera) { 
-                   
-            laserMesh.alignWithNormal(flyCamera.getForwardRay().direction)
-            initialPos = flyCamera.position.clone();
-            const ray = new core.Ray(initialPos, flyCamera.getForwardRay().direction.clone(), 1000);
-            rayEndPos = ray.origin.clone().add(ray.direction.scale(1000));
-        }
-
-        const zSlide = new core.Animation(
-            "zSlide",
-            "position",
-            laserFramerate,
-            core.Animation.ANIMATIONTYPE_VECTOR3,
-            core.Animation.ANIMATIONLOOPMODE_CONSTANT);
-
-        const keyFrames: core.IAnimationKey[] = [];
-
-        if (flyCamera) {
-            keyFrames.push({
-                frame: 0,
-                value: initialPos
-            });
-
-            keyFrames.push({
-                frame: 4 * laserFramerate,
-                value: rayEndPos
-            });
-        }
-
-        zSlide.setKeys(keyFrames);
-        laserMesh.animations.push(zSlide);
-
-        return laserMesh;
-    };
-
     const fireLaser = () => {
-        const { scene, flyCamera } = assetManager.current;
-        const laserMesh = createLaserBeam();
-
-        // if (flyCamera) {
-        //     laserMesh.setDirection(flyCamera?.rotation);
-        //     laserMesh.position.x = flyCamera?.position.x;
-        //     laserMesh.position.y = flyCamera?.position.y;
-        //     laserMesh.position.z = flyCamera?.position.z;
-
-        //     // laserMesh.rotation.x = xwingMesh?.rotation.x;
-        //     // laserMesh.rotation.y = xwingMesh?.rotation.y;
-        //     // laserMesh.rotation.z = xwingMesh?.rotation.z;;            
-        // }
-
-        const animatable = scene?.beginAnimation(laserMesh, 0, 2 * laserFramerate, false);
-
-        if (animatable) {
-            animatable.onAnimationEnd = () => {
-                laserMesh.dispose();
-            };
-        }
+        laserManager.current.fireLaser(assetManager.current.flyCamera, assetManager.current.scene);
     };
 
     const onSceneMount = (args: SceneEventArgs) => {
