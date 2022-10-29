@@ -8,6 +8,8 @@ import { useRef, useState } from "react";
 import ControlsConfig from "../controls-config";
 import AssetManager, { LaserManager } from "../managers/asset-manager";
 import GameManager from "../managers/game-manager";
+import { Button } from "@mui/material";
+import { maxWidth } from "@mui/system";
 
 interface XWingSceneProps {
 };
@@ -221,6 +223,12 @@ export default function XWingScene(props: XWingSceneProps) {
 
     return (
         <div>
+            <Button color={"info"} variant="contained" href="https://github.com/master0000blaster/get-them-deathstars" target={"_blank"} >
+                <img style={{maxWidth: 50}} src="/static/images/GitHub_Logo.png" />
+                Project
+            </Button>
+            <br/>
+            <br/>
             <Engine antialias adaptToDeviceRatio canvasId="xwing-canvas">
                 <Scene beforeRender={sceneBeforeRender} onSceneMount={onSceneMount}>
                     <flyCamera onCreated={cameraCreated} name="xwingcamera"
