@@ -1,5 +1,5 @@
 import { Container, Grid } from "@mui/material";
-import XWingScene from "./components/x-wing-scene";
+import Game from "./components/game";
 
 
 export default function App() {
@@ -7,7 +7,7 @@ export default function App() {
     <Container maxWidth="lg">
       <Grid container item direction="column" alignItems={'center'} justifyContent={'space-around'}>
         <Grid item>
-          <XWingScene />
+          <Game />
         </Grid>
       </Grid>
     </Container>

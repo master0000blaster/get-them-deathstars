@@ -11,8 +11,9 @@ import GameManager from "../managers/game-manager";
 import { Button, Grid, Paper } from "@mui/material";
 import { LaserManager } from "../managers/laser-manager";
 import DeathStarManager from "../managers/death-star-manager";
+import ReactPlayer from "react-player";
 
-export default function XWingScene() {
+export default function Game() {
 
     const [leftPressed, setLeftPressed] = useState(false);
     const [rightPressed, setRightPressed] = useState(false);
@@ -184,6 +185,20 @@ export default function XWingScene() {
                     <img style={{ maxWidth: 50 }} src="/static/images/GitHub_Logo.png" />
                     Project
                 </Button>
+            </Grid>
+            <Grid item>
+                <ReactPlayer url={GameManager.youTubeEndingVideoURL}
+                    config={{
+                        youtube: {
+                            playerVars: {
+                                // https://developers.google.com/youtube/player_parameters
+                                autoplay: 0,
+                                start: 97,
+                                end: 112
+                            }
+                        }
+                    }}
+                />
             </Grid>
             <Grid item>
                 <Paper elevation={2}>
