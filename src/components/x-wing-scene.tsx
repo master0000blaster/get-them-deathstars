@@ -20,7 +20,7 @@ export default function XWingScene() {
     const cameraCreated = (camera: core.FlyCamera, scene: core.Scene) => {
 
         AssetManager.flyCamera = camera;
-        camera.lockedTarget = AssetManager.deathStarMeshes[24];
+        camera.lockedTarget = DeathStarManager.deathStars[24];
         camera.inputs.clear();
     };
 
@@ -98,7 +98,7 @@ export default function XWingScene() {
         GameManager.isPaused = true;
         AssetManager.pewSound = new Sound('pew', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: false });
         AssetManager.introAudio = new Sound('intro', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: true });
-        AssetManager.outroAudio = new Sound('outro', '/static/sounds/outro.mp3', scene, null, { loop: false, autoplay: false });
+        AssetManager.outroAudio = new Sound('outro', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: false });
         AssetManager.introAudio.onended = introEnded;
 
         SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'xwing.glb', scene)
