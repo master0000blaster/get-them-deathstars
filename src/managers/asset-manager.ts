@@ -10,5 +10,6 @@ export default class AssetManager {
     static pewSound: Sound | undefined;
     static introAudio: Sound | undefined;
     static outroAudio: Sound | undefined;
+    static explosionSound: Sound | undefined;
     static deathStarGroupCollisionMesh: Mesh | undefined;
 }

@@ -99,6 +99,7 @@ export default function XWingScene() {
         AssetManager.pewSound = new Sound('pew', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: false });
         AssetManager.introAudio = new Sound('intro', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: true });
         AssetManager.outroAudio = new Sound('outro', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: false });
+        AssetManager.explosionSound = new Sound('explosion', '/static/sounds/explosion.mp3', scene, null, { loop: false, autoplay: false });
         AssetManager.introAudio.onended = introEnded;
 
         SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'xwing.glb', scene)

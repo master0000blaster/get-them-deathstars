@@ -10,8 +10,14 @@ export class LaserManager {
         if (AssetManager.flyCamera && AssetManager.scene) {
             LaserManager.laserBeams.push(new LaserBeam(AssetManager.flyCamera, AssetManager.scene, (laserBeam) => {
                 GameManager.isPaused = true;
-                AssetManager.outroAudio?.play(2);
                 DeathStarManager.blowUp();
+                if(AssetManager.explosionSound) {
+                    AssetManager.explosionSound.onended = () => {
+                        AssetManager.outroAudio?.play(1);
+                    }   
+                }
+
+                AssetManager.explosionSound?.play();
             }));
         }
     };
