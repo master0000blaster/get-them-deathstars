@@ -4,11 +4,11 @@ import * as core from "@babylonjs/core";
 import { ActionManager, ExecuteCodeAction, ISceneLoaderAsyncResult, PointerEventTypes, SceneLoader, Sound } from "@babylonjs/core";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import "@babylonjs/loaders";
-import { useState } from "react";
+import { LegacyRef, useRef, useState } from "react";
 import ControlsConfig from "../controls-config";
 import AssetManager from "../managers/asset-manager";
 import GameManager from "../managers/game-manager";
-import { Button, Grid, Paper } from "@mui/material";
+import { Button, Dialog, DialogContent, Grid, Paper } from "@mui/material";
 import { LaserManager } from "../managers/laser-manager";
 import DeathStarManager from "../managers/death-star-manager";
 import ReactPlayer from "react-player";
@@ -17,6 +17,8 @@ export default function Game() {
 
     const [leftPressed, setLeftPressed] = useState(false);
     const [rightPressed, setRightPressed] = useState(false);
+    const [endVideoDialogIsOpen, setEndVideoDialogIsOpen] = useState(false);
+    const [endVideoIsPlaying, setEndVideoIsPlaying] = useState(false);
 
     const cameraCreated = (camera: core.FlyCamera, scene: core.Scene) => {
 
@@ -62,6 +64,17 @@ export default function Game() {
         }
     };
 
+    const outroEnded = () => {
+        setEndVideoDialogIsOpen(true);
+        setEndVideoIsPlaying(true);
+    };
+
+    const endingEnded = () => {
+        setEndVideoDialogIsOpen(false);
+        setEndVideoIsPlaying(false);
+        GameManager.isPaused = false;
+    };
+
     const introEnded = () => {
 
         const { flyCamera, xwingMesh, scene } = AssetManager;
@@ -102,6 +115,7 @@ export default function Game() {
         AssetManager.outroAudio = new Sound('outro', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: false });
         AssetManager.explosionSound = new Sound('explosion', '/static/sounds/explosion.mp3', scene, null, { loop: false, autoplay: false });
         AssetManager.introAudio.onended = introEnded;
+        GameManager.outroAudioComlpete = outroEnded;
 
         SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'xwing.glb', scene)
             .then((result: ISceneLoaderAsyncResult) => {
@@ -187,20 +201,6 @@ export default function Game() {
                 </Button>
             </Grid>
             <Grid item>
-                <ReactPlayer url={GameManager.youTubeEndingVideoURL}
-                    config={{
-                        youtube: {
-                            playerVars: {
-                                // https://developers.google.com/youtube/player_parameters
-                                autoplay: 0,
-                                start: 97,
-                                end: 112
-                            }
-                        }
-                    }}
-                />
-            </Grid>
-            <Grid item>
                 <Paper elevation={2}>
                     <Engine antialias adaptToDeviceRatio canvasId="xwing-canvas">
                         <Scene beforeRender={sceneBeforeRender} onSceneMount={onSceneMount}>
@@ -221,6 +221,26 @@ export default function Game() {
                     </Engine>
                 </Paper>
             </Grid>
+            <Dialog maxWidth={'xl'} open={endVideoDialogIsOpen}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description">
+                <DialogContent>
+                    <ReactPlayer url={GameManager.youTubeEndingVideoURL}
+                    onEnded={endingEnded}
+                    playing={endVideoIsPlaying}
+                        config={{
+                            youtube: {
+                                playerVars: {
+                                    // https://developers.google.com/youtube/player_parameters
+                                    autoplay: 0,
+                                    start: GameManager.endingVideoStartSeconds,
+                                    end: GameManager.endingVideoEndSeconds
+                                }
+                            }
+                        }}
+                    />
+                </DialogContent>
+            </Dialog>
         </Grid>
     );
 }
