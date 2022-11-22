@@ -1,18 +1,19 @@
-import "../styles.css";
-import { AbstractMesh, MeshBuilder } from "@babylonjs/core";
+import { AbstractMesh, Mesh, MeshBuilder } from "@babylonjs/core";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import * as core from "@babylonjs/core";
-import "@babylonjs/loaders";
 import AssetManager from "../managers/asset-manager";
 import DeathStar from "../classes/death-star";
 
 export default class DeathStarManager {
 
     static explosionParticleSet: core.ParticleSystemSet | undefined;
+    static deathStarGroupCollisionMesh: Mesh | undefined;
     static deathStars: DeathStar[] = [];
 
     static blowUp = () => {
-        DeathStarManager.explosionParticleSet?.start(AssetManager.deathStarGroupCollisionMesh);
+
+        AssetManager.resetPosition();
+        DeathStarManager.explosionParticleSet?.start(DeathStarManager.deathStarGroupCollisionMesh);
         DeathStarManager.deathStars.forEach((ds) => {
             ds.deathStarMesh.dispose();
         });
@@ -57,23 +58,23 @@ export default class DeathStarManager {
             }
         }
 
-        AssetManager.deathStarGroupCollisionMesh = MeshBuilder.CreateBox("ds_collider");
-        const { deathStarGroupCollisionMesh: deathStarGroupCollisionmesh } = AssetManager;
-        deathStarGroupCollisionmesh.isVisible = false;
-        deathStarGroupCollisionmesh.scaling = new Vector3(1000, 600, 100);
-        deathStarGroupCollisionmesh.position = DeathStarManager.deathStars[24].deathStarMesh.position;
+        DeathStarManager.deathStarGroupCollisionMesh = MeshBuilder.CreateBox("ds_collider");
+        const { deathStarGroupCollisionMesh } = DeathStarManager;
+        deathStarGroupCollisionMesh.isVisible = false;
+        deathStarGroupCollisionMesh.scaling = new Vector3(1000, 600, 100);
+        deathStarGroupCollisionMesh.position = DeathStarManager.deathStars[24].deathStarMesh.position;
 
         if (AssetManager.scene) {
             core.ParticleHelper.CreateAsync("explosion", AssetManager.scene).then((particleSet) => {
                 DeathStarManager.explosionParticleSet = particleSet;
-                particleSet.systems.forEach(s => {
-                    s.disposeOnStop = true;
-                    s.maxSize = 30;
-                    s.minSize = 10;
-                    s.gravity = new Vector3(0, 0, 0);
-                    s.minEmitPower = 1;
-                    s.maxEmitPower = 3;
-                    s.maxLifeTime = 4;
+                particleSet.systems.forEach(sys => {
+                    sys.disposeOnStop = true;
+                    sys.maxSize = 30;
+                    sys.minSize = 10;
+                    sys.gravity = new Vector3(0, 0, 0);
+                    sys.minEmitPower = 1;
+                    sys.maxEmitPower = 3;
+                    sys.maxLifeTime = 4;
                 });
             });
         }

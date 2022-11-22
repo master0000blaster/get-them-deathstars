@@ -4,11 +4,10 @@ import * as core from "@babylonjs/core";
 import { ActionManager, ExecuteCodeAction, ISceneLoaderAsyncResult, PointerEventTypes, SceneLoader, Sound } from "@babylonjs/core";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import "@babylonjs/loaders";
-import { LegacyRef, useRef, useState } from "react";
-import ControlsConfig from "../controls-config";
+import { useState } from "react";
 import AssetManager from "../managers/asset-manager";
 import GameManager from "../managers/game-manager";
-import { Button, Dialog, DialogContent, Grid, Paper } from "@mui/material";
+import { Button, Dialog, DialogContent, Grid, Paper, Typography } from "@mui/material";
 import { LaserManager } from "../managers/laser-manager";
 import DeathStarManager from "../managers/death-star-manager";
 import ReactPlayer from "react-player";
@@ -51,53 +50,14 @@ export default function Game() {
         }
     };
 
-    const createPointerLock = (scene: core.Scene | undefined) => {
-        const canvas = scene?.getEngine().getRenderingCanvas();
-
-        if (canvas) {
-            canvas.addEventListener("click", event => {
-                canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
-                if (canvas.requestPointerLock) {
-                    canvas.requestPointerLock();
-                }
-            }, false);
-        }
-    };
-
     const outroEnded = () => {
         setEndVideoDialogIsOpen(true);
         setEndVideoIsPlaying(true);
     };
 
     const endingEnded = () => {
-        setEndVideoDialogIsOpen(false);
-        setEndVideoIsPlaying(false);
-        GameManager.isPaused = false;
+        GameManager.resetGame();
     };
-
-    const introEnded = () => {
-
-        const { flyCamera, xwingMesh, scene } = AssetManager;
-
-        createPointerLock(scene);
-
-        if (flyCamera) {
-            flyCamera.lockedTarget = undefined;
-            flyCamera.inputs.addMouse();
-            flyCamera.inputs.addKeyboard();
-            flyCamera.keysUp.push(87);
-            flyCamera.keysLeft = [];
-            flyCamera.keysRight = [];
-            flyCamera.speed = 4;
-            flyCamera.inertia = 0.87;
-        }
-
-        if (xwingMesh && flyCamera) {
-            xwingMesh.parent = flyCamera;
-        }
-
-        GameManager.isPaused = false;
-    }
 
     const fireLaser = () => {
         LaserManager.fireLaser();
@@ -114,7 +74,7 @@ export default function Game() {
         AssetManager.introAudio = new Sound('intro', '/static/sounds/intro.mp3', scene, null, { loop: false, autoplay: true });
         AssetManager.outroAudio = new Sound('outro', '/static/sounds/outro.mp3', scene, null, { loop: false, autoplay: false });
         AssetManager.explosionSound = new Sound('explosion', '/static/sounds/explosion.mp3', scene, null, { loop: false, autoplay: false });
-        AssetManager.introAudio.onended = introEnded;
+        AssetManager.introAudio.onended = GameManager.introEnded;
         GameManager.outroAudioComlpete = outroEnded;
 
         SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'xwing.glb', scene)
@@ -153,13 +113,12 @@ export default function Game() {
         scene.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, function (evt) {
             if (evt.sourceEvent.type == "keydown" && !GameManager.isPaused) {
 
-                const config = new ControlsConfig();
                 switch (evt.sourceEvent.key.toLowerCase()) {
-                    case config.RollLeft: {
+                    case 'a': {
                         setLeftPressed(true);
                         break;
                     }
-                    case config.RollRight: {
+                    case 'd': {
                         setRightPressed(true);
                         break;
                     }
@@ -174,13 +133,12 @@ export default function Game() {
         scene.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, function (evt) {
             if (evt.sourceEvent.type == "keyup" && !GameManager.isPaused) {
 
-                const config = new ControlsConfig();
                 switch (evt.sourceEvent.key.toLowerCase()) {
-                    case config.RollLeft: {
+                    case 'a': {
                         setLeftPressed(false);
                         break;
                     }
-                    case config.RollRight: {
+                    case 'd': {
                         setRightPressed(false);
                         break;
                     }
@@ -225,20 +183,34 @@ export default function Game() {
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description">
                 <DialogContent>
-                    <ReactPlayer url={GameManager.youTubeEndingVideoURL}
-                    onEnded={endingEnded}
-                    playing={endVideoIsPlaying}
-                        config={{
-                            youtube: {
-                                playerVars: {
-                                    // https://developers.google.com/youtube/player_parameters
-                                    autoplay: 0,
-                                    start: GameManager.endingVideoStartSeconds,
-                                    end: GameManager.endingVideoEndSeconds
-                                }
-                            }
-                        }}
-                    />
+                    <Grid container alignItems={"center"} flexDirection={"column"}>
+                        <Grid item>
+                            <Typography color={"black"} fontSize={40} fontFamily={'Arial'}>
+                                You are the Champion of the galaxy!
+                            </Typography>
+                        </Grid>
+                        <Grid item>
+                            <Button color={"info"} variant="contained" onClick={GameManager.resetGame}>
+                                Reset Game
+                            </Button>
+                        </Grid>
+                        <Grid item>
+                            <ReactPlayer url={GameManager.youTubeEndingVideoURL}
+                                onEnded={endingEnded}
+                                playing={endVideoIsPlaying}
+                                config={{
+                                    youtube: {
+                                        playerVars: {
+                                            // https://developers.google.com/youtube/player_parameters
+                                            autoplay: 0,
+                                            start: GameManager.endingVideoStartSeconds,
+                                            end: GameManager.endingVideoEndSeconds
+                                        }
+                                    }
+                                }}
+                            />
+                        </Grid>
+                    </Grid>
                 </DialogContent>
             </Dialog>
         </Grid>

@@ -1,5 +1,4 @@
-import { AbstractMesh, FlyCamera, Mesh, Scene, Sound } from "@babylonjs/core";
-import DeathStar from "../classes/death-star";
+import { AbstractMesh, FlyCamera, Scene, Sound, Vector3 } from "@babylonjs/core";
 
 export default class AssetManager {
 
@@ -11,5 +10,11 @@ export default class AssetManager {
     static introAudio: Sound | undefined;
     static outroAudio: Sound | undefined;
     static explosionSound: Sound | undefined;
-    static deathStarGroupCollisionMesh: Mesh | undefined;
+
+    static resetPosition = () => {
+        if (AssetManager.flyCamera) {
+            AssetManager.flyCamera.position = new Vector3(0, 0, 0);
+            AssetManager.flyCamera.rotation = new Vector3(0, 0, 0);
+        }
+    };
 }

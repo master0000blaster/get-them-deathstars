@@ -18,6 +18,8 @@ export class LaserManager {
                             AssetManager.outroAudio.onended = GameManager.outroAudioComlpete;
                             AssetManager.outroAudio.play(1);
                         }
+
+                        DeathStarManager.deathStarGroupCollisionMesh?.dispose();
                     };
                 }
 
