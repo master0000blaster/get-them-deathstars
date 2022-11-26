@@ -5,7 +5,7 @@
 
 Can you get em all? :)
 
-"Get them Death Stars is a silly game written for fun as a way to explore both React and Babylon js.
+"Get them Death Stars" is a silly game written for fun as a way to explore both React and Babylon js.
 
 A: roll left <br/>
 D: roll right <br/>
