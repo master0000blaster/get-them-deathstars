@@ -1,6 +1,6 @@
 # Get them Death Stars
 
-Just having some fun. :)
+Can you get em all? :)
 
 A = roll left <br/>
 D = roll right <br/>
