@@ -1,15 +1,22 @@
 import AssetManager from "./asset-manager";
 import * as core from "@babylonjs/core";
+import DeathStarManager from "./death-star-manager";
 
 export default class GameManager {
+
     static isPaused: boolean = true;
     static screenCapHasClicked: boolean = false;
     static youTubeEndingVideoURL: string = 'https://www.youtube.com/watch?v=Tj-GZJhfBmI';
     static endingVideoEndSeconds: number = 112;
     static endingVideoStartSeconds: number = 97;
-    static outroAudioComlpete: () => any;
+    static hasReset: boolean = false;
+
     static resetGame = () => {
-        location.href = location.href;
+        GameManager.hasReset = true;
+        GameManager.screenCapHasClicked = false;
+        DeathStarManager.setupDeathStars();
+        AssetManager.setupFlyCamera();
+        GameManager.isPaused = false;
     };
 
     static createPointerLock = (scene: core.Scene | undefined) => {
@@ -24,27 +31,4 @@ export default class GameManager {
             }, false);
         }
     };
-
-    static introEnded = () => {
-
-        const { flyCamera, xwingMesh, scene } = AssetManager;
-        GameManager.createPointerLock(scene);
-
-        if (flyCamera) {
-            flyCamera.lockedTarget = undefined;
-            flyCamera.inputs.addMouse();
-            flyCamera.inputs.addKeyboard();
-            flyCamera.keysUp.push(87);
-            flyCamera.keysLeft = [];
-            flyCamera.keysRight = [];
-            flyCamera.speed = 4;
-            flyCamera.inertia = 0.87;
-        }
-
-        if (xwingMesh && flyCamera) {
-            xwingMesh.parent = flyCamera;
-        }
-
-        GameManager.isPaused = false;
-    }
 }

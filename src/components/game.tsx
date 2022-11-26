@@ -13,206 +13,222 @@ import DeathStarManager from "../managers/death-star-manager";
 import ReactPlayer from "react-player";
 
 export default function Game() {
+  const [leftPressed, setLeftPressed] = useState(false);
+  const [rightPressed, setRightPressed] = useState(false);
+  const [endVideoDialogIsOpen, setEndVideoDialogIsOpen] = useState(false);
+  const [endVideoIsPlaying, setEndVideoIsPlaying] = useState(false);
 
-    const [leftPressed, setLeftPressed] = useState(false);
-    const [rightPressed, setRightPressed] = useState(false);
-    const [endVideoDialogIsOpen, setEndVideoDialogIsOpen] = useState(false);
-    const [endVideoIsPlaying, setEndVideoIsPlaying] = useState(false);
+  const cameraCreated = (camera: core.FlyCamera, scene: core.Scene) => {
+    AssetManager.flyCamera = camera;
+    AssetManager.flyCamera.lockedTarget = DeathStarManager.deathStars[24];
+    AssetManager.flyCamera.inputs.clear();
+  };
 
-    const cameraCreated = (camera: core.FlyCamera, scene: core.Scene) => {
+  // is called every frame
+  const sceneBeforeRender = () => {
+    if (!GameManager.isPaused) {
+      LaserManager.advanceLaserBeamPositions();
 
-        AssetManager.flyCamera = camera;
-        camera.lockedTarget = DeathStarManager.deathStars[24];
-        camera.inputs.clear();
-    };
+      const { xwingMesh, flyCamera } = AssetManager;
+      if (xwingMesh && flyCamera) {
+        const rotationSpeed: number = 0.03;
 
-    // is called every frame
-    const sceneBeforeRender = () => {
-        if (!GameManager.isPaused) {
-
-            LaserManager.advanceLaserBeamPositions();
-
-            const { xwingMesh, flyCamera } = AssetManager;
-            if (xwingMesh && flyCamera) {
-
-                const rotationSpeed: number = 0.03;
-
-                if (leftPressed) {
-                    xwingMesh.rotation.z += rotationSpeed;
-                    flyCamera.rotation.z += rotationSpeed;
-                }
-
-                if (rightPressed) {
-                    xwingMesh.rotation.z -= rotationSpeed;
-                    flyCamera.rotation.z -= rotationSpeed;
-                }
-            }
+        if (leftPressed) {
+          xwingMesh.rotation.z += rotationSpeed;
+          flyCamera.rotation.z += rotationSpeed;
         }
-    };
 
-    const outroEnded = () => {
-        setEndVideoDialogIsOpen(true);
-        setEndVideoIsPlaying(true);
-    };
+        if (rightPressed) {
+          xwingMesh.rotation.z -= rotationSpeed;
+          flyCamera.rotation.z -= rotationSpeed;
+        }
+      }
+    }
+  };
 
-    const endingEnded = () => {
-        GameManager.resetGame();
-    };
+  const outroEnded = () => {
+    setEndVideoDialogIsOpen(true);
+    setEndVideoIsPlaying(true);
+  };
 
-    const fireLaser = () => {
-        LaserManager.fireLaser();
-    };
+  const endingEnded = () => {
+    setEndVideoIsPlaying(false);
+  };
 
-    const onSceneMount = (args: SceneEventArgs) => {
+  const fireLaser = () => {
+    LaserManager.fireLaser();
+  };
 
-        AssetManager.scene = args.scene;
-        AssetManager.canvas = args.canvas;
-        const { scene } = AssetManager;
+  const resetGame = () => {
+    setEndVideoDialogIsOpen(false);
+    GameManager.resetGame();
+  };
 
-        GameManager.isPaused = true;
-        AssetManager.pewSound = new Sound('pew', '/static/sounds/PEW.mp3', scene, null, { loop: false, autoplay: false });
-        AssetManager.introAudio = new Sound('intro', '/static/sounds/intro.mp3', scene, null, { loop: false, autoplay: true });
-        AssetManager.outroAudio = new Sound('outro', '/static/sounds/outro.mp3', scene, null, { loop: false, autoplay: false });
-        AssetManager.explosionSound = new Sound('explosion', '/static/sounds/explosion.mp3', scene, null, { loop: false, autoplay: false });
-        AssetManager.introAudio.onended = GameManager.introEnded;
-        GameManager.outroAudioComlpete = outroEnded;
+  const introLoaded = () => {
+    if (!GameManager.hasReset) {
+      AssetManager.introAudio?.play();
+    }
+  };
 
-        SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'xwing.glb', scene)
-            .then((result: ISceneLoaderAsyncResult) => {
-                AssetManager.xwingMesh = result.meshes[0];
-            });
+  const introEnded = () => {
+    GameManager.isPaused = false;
+    AssetManager.setupFlyCamera();
+  };
 
-        SceneLoader.ImportMeshAsync('', '/static/3dmodels/', 'deathstar.glb', scene)
-            .then((result: ISceneLoaderAsyncResult) => {
-                DeathStarManager.setupDeathStars(result.meshes[0]);
-            });
+  const onSceneMount = (args: SceneEventArgs) => {
+    AssetManager.scene = args.scene;
+    AssetManager.canvas = args.canvas;
+    const { scene } = AssetManager;
 
-        scene.actionManager = new ActionManager(scene);
+    GameManager.isPaused = true;
+    AssetManager.pewSound = new Sound("pew", "/static/sounds/PEW.mp3", scene, null, { loop: false, autoplay: false });
+    AssetManager.introAudio = new Sound("intro", "/static/sounds/intro.mp3", scene, introLoaded, { loop: false, autoplay: false });
+    AssetManager.introAudio.onended = introEnded;
+    AssetManager.outroAudio = new Sound("outro", "/static/sounds/outro.mp3", scene, null, { loop: false, autoplay: false });
+    AssetManager.outroAudio.onended = outroEnded;
+    AssetManager.explosionSound = new Sound("explosion", "/static/sounds/explosion.mp3", scene, null, { loop: false, autoplay: false });
 
-        scene.onPointerObservable.add((pointerInfo: core.PointerInfo) => {
+    SceneLoader.ImportMeshAsync("", "/static/3dmodels/", "xwing.glb", scene).then((result: ISceneLoaderAsyncResult) => {
+      AssetManager.xwingMesh = result.meshes[0];
+    });
 
-            if (!GameManager.isPaused) {
-                switch (pointerInfo.type) {
-                    case PointerEventTypes.POINTERDOWN: {
-                        if (GameManager.screenCapHasClicked) {
-                            AssetManager.pewSound?.play(0);
-                            fireLaser();
-                        }
+    SceneLoader.ImportMeshAsync("", "/static/3dmodels/", "deathstar.glb", scene).then((result: ISceneLoaderAsyncResult) => {
+      DeathStarManager.originalDeathStarMesh = result.meshes[0];
+      DeathStarManager.setupDeathStars();
+    });
 
-                        //do not register the first click. it is the screen cap click.
-                        GameManager.screenCapHasClicked = true;
-                        break;
-                    }
-                    default:
-                        break;
-                }
+    scene.actionManager = new ActionManager(scene);
+
+    scene.onPointerObservable.add((pointerInfo: core.PointerInfo) => {
+      if (!GameManager.isPaused) {
+        switch (pointerInfo.type) {
+          case PointerEventTypes.POINTERDOWN: {
+            if (GameManager.screenCapHasClicked) {
+              AssetManager.pewSound?.play(0);
+              fireLaser();
             }
-        });
 
-        // keydown
-        scene.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, function (evt) {
-            if (evt.sourceEvent.type == "keydown" && !GameManager.isPaused) {
+            //do not register the first click. it is the screen cap click.
+            GameManager.screenCapHasClicked = true;
+            break;
+          }
+          default:
+            break;
+        }
+      }
+    });
 
-                switch (evt.sourceEvent.key.toLowerCase()) {
-                    case 'a': {
-                        setLeftPressed(true);
-                        break;
-                    }
-                    case 'd': {
-                        setRightPressed(true);
-                        break;
-                    }
-                    default: {
-                        break;
-                    }
-                }
+    // keydown
+    scene.actionManager.registerAction(
+      new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, function (evt) {
+        if (evt.sourceEvent.type == "keydown" && !GameManager.isPaused) {
+          switch (evt.sourceEvent.key.toLowerCase()) {
+            case "a": {
+              setLeftPressed(true);
+              break;
             }
-        }));
-
-        // keyup
-        scene.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, function (evt) {
-            if (evt.sourceEvent.type == "keyup" && !GameManager.isPaused) {
-
-                switch (evt.sourceEvent.key.toLowerCase()) {
-                    case 'a': {
-                        setLeftPressed(false);
-                        break;
-                    }
-                    case 'd': {
-                        setRightPressed(false);
-                        break;
-                    }
-                    default: {
-                        break;
-                    }
-                }
+            case "d": {
+              setRightPressed(true);
+              break;
             }
-        }));
-    };
+            default: {
+              break;
+            }
+          }
+        }
+      })
+    );
 
-    return (
-        <Grid container flexDirection={"column"}>
-            <Grid item alignItems={"flex-start"}>
-                <Button color={"info"} variant="contained" href="https://github.com/master0000blaster/get-them-deathstars" target={"_blank"} >
-                    <img style={{ maxWidth: 50 }} src="/static/images/GitHub_Logo.png" />
-                    Project
-                </Button>
+    // keyup
+    scene.actionManager.registerAction(
+      new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, function (evt) {
+        if (evt.sourceEvent.type == "keyup" && !GameManager.isPaused) {
+          switch (evt.sourceEvent.key.toLowerCase()) {
+            case "a": {
+              setLeftPressed(false);
+              break;
+            }
+            case "d": {
+              setRightPressed(false);
+              break;
+            }
+            default: {
+              break;
+            }
+          }
+        }
+      })
+    );
+
+  };
+
+  return (
+    <Grid container flexDirection={"column"}>
+      <h2>Get them Death Stars</h2>
+      <Grid item alignItems={"flex-start"}>
+        <Grid container item justifyContent={"space-between"} flexDirection={"row"}>
+          <Grid item>
+            W: Forward | S: Backward | A: Roll Left | D: Roll Right | Fire: Left Mouse
+          </Grid>
+          <Grid item>
+            <Button color={"info"} variant="contained" href="https://github.com/master0000blaster/get-them-deathstars" target={"_blank"}>
+              <img style={{ maxWidth: 50 }} src="/static/images/GitHub_Logo.png" />
+              Project
+            </Button>
+          </Grid>
+        </Grid>
+      </Grid>
+      <Grid item>
+        <Paper elevation={2}>
+          <Engine antialias adaptToDeviceRatio canvasId="xwing-canvas">
+            <Scene beforeRender={sceneBeforeRender} onSceneMount={onSceneMount}>
+              <flyCamera
+                onCreated={cameraCreated}
+                name="xwingcamera"
+                position={new Vector3(0, 0, -30)}
+                bankedTurn={true}
+                rollCorrect={0}
+                bankedTurnMultiplier={2}
+                noRotationConstraint={true} />
+              <hemisphericLight name="light1" intensity={0.7} direction={new Vector3(0.5, 1, 0)} />
+              <Skybox size={10000} rootUrl="/static/images/space-skybox/" name={"skybox"} />
+            </Scene>
+          </Engine>
+        </Paper>
+      </Grid>
+      <Dialog maxWidth={"xl"} open={endVideoDialogIsOpen} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
+        <DialogContent>
+          <Grid container alignItems={"center"} flexDirection={"column"}>
+            <Grid item>
+              <Typography color={"black"} fontSize={40} fontFamily={"Arial"}>
+                You're Champion of the Universe!
+              </Typography>
             </Grid>
             <Grid item>
-                <Paper elevation={2}>
-                    <Engine antialias adaptToDeviceRatio canvasId="xwing-canvas">
-                        <Scene beforeRender={sceneBeforeRender} onSceneMount={onSceneMount}>
-                            <flyCamera onCreated={cameraCreated} name="xwingcamera"
-                                position={new Vector3(0, 0, -30)}
-                                bankedTurn={true}
-                                rollCorrect={0}
-                                bankedTurnMultiplier={2}
-                                noRotationConstraint={true}
-                            />
-                            <hemisphericLight
-                                name="light1"
-                                intensity={0.7}
-                                direction={new Vector3(0.5, 1, 0)}
-                            />
-                            <Skybox size={10000} rootUrl="/static/images/space-skybox/" name={'skybox'} />
-                        </Scene>
-                    </Engine>
-                </Paper>
+              <ReactPlayer
+                url={GameManager.youTubeEndingVideoURL}
+                onEnded={endingEnded}
+                playing={endVideoIsPlaying}
+                config={{
+                  youtube: {
+                    playerVars: {
+                      // https://developers.google.com/youtube/player_parameters
+                      autoplay: 0,
+                      start: GameManager.endingVideoStartSeconds,
+                      end: GameManager.endingVideoEndSeconds,
+                    },
+                  },
+                }}
+              />
             </Grid>
-            <Dialog maxWidth={'xl'} open={endVideoDialogIsOpen}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description">
-                <DialogContent>
-                    <Grid container alignItems={"center"} flexDirection={"column"}>
-                        <Grid item>
-                            <Typography color={"black"} fontSize={40} fontFamily={'Arial'}>
-                                You are the Champion of the galaxy!
-                            </Typography>
-                        </Grid>
-                        <Grid item>
-                            <Button color={"info"} variant="contained" onClick={GameManager.resetGame}>
-                                Reset Game
-                            </Button>
-                        </Grid>
-                        <Grid item>
-                            <ReactPlayer url={GameManager.youTubeEndingVideoURL}
-                                onEnded={endingEnded}
-                                playing={endVideoIsPlaying}
-                                config={{
-                                    youtube: {
-                                        playerVars: {
-                                            // https://developers.google.com/youtube/player_parameters
-                                            autoplay: 0,
-                                            start: GameManager.endingVideoStartSeconds,
-                                            end: GameManager.endingVideoEndSeconds
-                                        }
-                                    }
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
-                </DialogContent>
-            </Dialog>
-        </Grid>
-    );
+            <Grid item>
+              <Button color={"info"} variant="contained" onClick={resetGame}>
+                Reset Game
+              </Button>
+            </Grid>
+          </Grid>
+        </DialogContent>
+      </Dialog>
+    </Grid>
+  );
 }

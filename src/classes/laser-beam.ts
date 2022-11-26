@@ -15,7 +15,7 @@ export class LaserBeam {
     displacement: number = 0;
     unitVec: Vector3 = Vector3.Up();
     frameCounter: number = 0;
-    maxFrame: number = 60;
+    maxFrames: number = 60;
     laserMoveIncrement: number = 8;
     isAHit: boolean = false;
     onLaserHitCallBack: (laserBeam: LaserBeam) => void;
@@ -56,7 +56,7 @@ export class LaserBeam {
 
     advanceBeamPosition = (): void => {
 
-        if (this.frameCounter > this.maxFrame) {
+        if (this.frameCounter > this.maxFrames) {
             if (this.laserMesh) {
                 if (this.isAHit && this.onLaserHitCallBack) {
                     this.onLaserHitCallBack(this);

@@ -11,5 +11,8 @@
   "files.autoSave": "onFocusChange",
   "[typescript]": {
     "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
   } // optional but recommended
 }

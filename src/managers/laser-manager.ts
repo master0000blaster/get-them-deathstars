@@ -13,14 +13,14 @@ export class LaserManager {
                 DeathStarManager.blowUp();
 
                 if (AssetManager.explosionSound) {
-                    AssetManager.explosionSound.onended = () => {
+
+                    const explosionSoundEnded = () => {
                         if (AssetManager.outroAudio) {
-                            AssetManager.outroAudio.onended = GameManager.outroAudioComlpete;
                             AssetManager.outroAudio.play(1);
                         }
-
-                        DeathStarManager.deathStarGroupCollisionMesh?.dispose();
                     };
+
+                    AssetManager.explosionSound.onended = explosionSoundEnded;
                 }
 
                 AssetManager.explosionSound?.play();

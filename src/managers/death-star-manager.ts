@@ -1,4 +1,4 @@
-import { AbstractMesh, Mesh, MeshBuilder } from "@babylonjs/core";
+import { AbstractMesh, Mesh, MeshBuilder, Nullable } from "@babylonjs/core";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import * as core from "@babylonjs/core";
 import AssetManager from "../managers/asset-manager";
@@ -9,17 +9,32 @@ export default class DeathStarManager {
     static explosionParticleSet: core.ParticleSystemSet | undefined;
     static deathStarGroupCollisionMesh: Mesh | undefined;
     static deathStars: DeathStar[] = [];
+    static originalDeathStarMesh: AbstractMesh | undefined;
 
     static blowUp = () => {
 
-        AssetManager.resetPosition();
-        DeathStarManager.explosionParticleSet?.start(DeathStarManager.deathStarGroupCollisionMesh);
+        AssetManager.resetCameraPosition();
         DeathStarManager.deathStars.forEach((ds) => {
             ds.deathStarMesh.dispose();
         });
+        DeathStarManager.explosionParticleSet?.start(DeathStarManager.deathStarGroupCollisionMesh);
     };
 
-    static setupDeathStars = (deathStarMesh: AbstractMesh) => {
+    static setupDeathStars = () => {
+
+        if (!DeathStarManager.originalDeathStarMesh || !AssetManager.scene) {
+            return;
+        }
+
+        if (DeathStarManager.deathStars && DeathStarManager.deathStars.length > 0) {
+            DeathStarManager.deathStars.forEach((ds) => {
+                ds.deathStarMesh.dispose();
+            });
+            DeathStarManager.deathStars = [];
+        }
+
+        DeathStarManager.originalDeathStarMesh.isVisible = false;
+        const deathStarMesh: Nullable<AbstractMesh> = DeathStarManager.originalDeathStarMesh.clone('deathstar0', null, false);
 
         const xIncrement: number = 100;
         const groupOffsetX: number = 400;
@@ -27,13 +42,17 @@ export default class DeathStarManager {
         const groupZ: number = 1000;
         const scale: number = 3;
 
-        deathStarMesh.name = 'deathstar0';
-        DeathStarManager.deathStars.push(new DeathStar(deathStarMesh));
+        if (deathStarMesh) {
+            deathStarMesh.isVisible = true;
+            DeathStarManager.deathStars.push(new DeathStar(deathStarMesh));
 
-        for (let i: number = 0; i < 49; i++) {
-            const newDeathStar = deathStarMesh.clone('deathstar' + (i + 1), null, false);
-            if (newDeathStar) {
-                DeathStarManager.deathStars.push(new DeathStar(newDeathStar));
+            for (let i: number = 0; i < 49; i++) {
+                const newDeathStar = deathStarMesh.clone('deathstar' + (i + 1), null, false);
+
+                if (newDeathStar) {
+                    newDeathStar.isVisible = true;
+                    DeathStarManager.deathStars.push(new DeathStar(newDeathStar));
+                }
             }
         }
 
@@ -58,6 +77,10 @@ export default class DeathStarManager {
             }
         }
 
+        if (DeathStarManager.deathStarGroupCollisionMesh) {
+            DeathStarManager.deathStarGroupCollisionMesh.dispose();
+        }
+
         DeathStarManager.deathStarGroupCollisionMesh = MeshBuilder.CreateBox("ds_collider");
         const { deathStarGroupCollisionMesh } = DeathStarManager;
         deathStarGroupCollisionMesh.isVisible = false;
@@ -78,5 +101,7 @@ export default class DeathStarManager {
                 });
             });
         }
+
+        DeathStarManager.originalDeathStarMesh.position = DeathStarManager.deathStars[49].deathStarMesh.position;
     }
 }
