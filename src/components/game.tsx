@@ -11,9 +11,6 @@ import { Button, Dialog, DialogContent, Grid, Paper, Slide, Typography } from "@
 import { LaserManager } from "../managers/laser-manager";
 import DeathStarManager from "../managers/death-star-manager";
 import ReactPlayer from "react-player";
-import React from "react";
-import { TransitionProps } from "@mui/material/transitions";
-
 
 export default function Game() {
   const [leftPressed, setLeftPressed] = useState(false);
@@ -75,6 +72,10 @@ export default function Game() {
 
   const startGame = () => {
     setStartButtonDialogIsOpen(false);
+
+    if (core.Engine.audioEngine && core.Engine.audioEngine.audioContext) {
+      core.Engine.audioEngine.audioContext.resume();
+    }
 
     if (!GameManager.hasReset) {
       AssetManager.introAudio?.play();
