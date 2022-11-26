@@ -7,9 +7,15 @@ export class LaserManager {
     static laserBeams: LaserBeam[] = [];
 
     static fireLaser = (): void => {
-        if (AssetManager.flyCamera && AssetManager.scene) {
+        if (!GameManager.isPaused && AssetManager.flyCamera && AssetManager.scene) {
             LaserManager.laserBeams.push(new LaserBeam(AssetManager.flyCamera, AssetManager.scene, (laserBeam) => {
                 GameManager.isPaused = true;
+
+                LaserManager.laserBeams.forEach((lb) => {
+                    lb.laserMesh.dispose();
+                });
+
+                LaserManager.laserBeams = [];
                 DeathStarManager.blowUp();
 
                 if (AssetManager.explosionSound) {

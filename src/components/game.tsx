@@ -7,14 +7,18 @@ import "@babylonjs/loaders";
 import { useState } from "react";
 import AssetManager from "../managers/asset-manager";
 import GameManager from "../managers/game-manager";
-import { Button, Dialog, DialogContent, Grid, Paper, Typography } from "@mui/material";
+import { Button, Dialog, DialogContent, Grid, Paper, Slide, Typography } from "@mui/material";
 import { LaserManager } from "../managers/laser-manager";
 import DeathStarManager from "../managers/death-star-manager";
 import ReactPlayer from "react-player";
+import React from "react";
+import { TransitionProps } from "@mui/material/transitions";
+
 
 export default function Game() {
   const [leftPressed, setLeftPressed] = useState(false);
   const [rightPressed, setRightPressed] = useState(false);
+  const [startButtonDialogIsOpen, setStartButtonDialogIsOpen] = useState(false);
   const [endVideoDialogIsOpen, setEndVideoDialogIsOpen] = useState(false);
   const [endVideoIsPlaying, setEndVideoIsPlaying] = useState(false);
 
@@ -26,22 +30,20 @@ export default function Game() {
 
   // is called every frame
   const sceneBeforeRender = () => {
-    if (!GameManager.isPaused) {
-      LaserManager.advanceLaserBeamPositions();
+    LaserManager.advanceLaserBeamPositions();
 
-      const { xwingMesh, flyCamera } = AssetManager;
-      if (xwingMesh && flyCamera) {
-        const rotationSpeed: number = 0.03;
+    const { xwingMesh, flyCamera } = AssetManager;
+    if (xwingMesh && flyCamera) {
+      const rotationSpeed: number = 0.03;
 
-        if (leftPressed) {
-          xwingMesh.rotation.z += rotationSpeed;
-          flyCamera.rotation.z += rotationSpeed;
-        }
+      if (leftPressed) {
+        xwingMesh.rotation.z += rotationSpeed;
+        flyCamera.rotation.z += rotationSpeed;
+      }
 
-        if (rightPressed) {
-          xwingMesh.rotation.z -= rotationSpeed;
-          flyCamera.rotation.z -= rotationSpeed;
-        }
+      if (rightPressed) {
+        xwingMesh.rotation.z -= rotationSpeed;
+        flyCamera.rotation.z -= rotationSpeed;
       }
     }
   };
@@ -61,18 +63,29 @@ export default function Game() {
 
   const resetGame = () => {
     setEndVideoDialogIsOpen(false);
-    GameManager.resetGame();
+    setStartButtonDialogIsOpen(true);
   };
 
   const introLoaded = () => {
-    if (!GameManager.hasReset) {
-      AssetManager.introAudio?.play();
-    }
   };
 
   const introEnded = () => {
-    GameManager.isPaused = false;
-    AssetManager.setupFlyCamera();
+    GameManager.resetGame();
+  };
+
+  const startGame = () => {
+    setStartButtonDialogIsOpen(false);
+
+    if (!GameManager.hasReset) {
+      AssetManager.introAudio?.play();
+      GameManager.isPaused = true;
+      GameManager.screenCapHasClicked = false;
+      DeathStarManager.setupDeathStars();
+      AssetManager.setupFlyCamera();
+    }
+    else {
+      GameManager.resetGame();
+    }
   };
 
   const onSceneMount = (args: SceneEventArgs) => {
@@ -94,7 +107,7 @@ export default function Game() {
 
     SceneLoader.ImportMeshAsync("", "/static/3dmodels/", "deathstar.glb", scene).then((result: ISceneLoaderAsyncResult) => {
       DeathStarManager.originalDeathStarMesh = result.meshes[0];
-      DeathStarManager.setupDeathStars();
+      //DeathStarManager.setupDeathStars();
     });
 
     scene.actionManager = new ActionManager(scene);
@@ -121,7 +134,7 @@ export default function Game() {
     // keydown
     scene.actionManager.registerAction(
       new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, function (evt) {
-        if (evt.sourceEvent.type == "keydown" && !GameManager.isPaused) {
+        if (evt.sourceEvent.type == "keydown") {
           switch (evt.sourceEvent.key.toLowerCase()) {
             case "a": {
               setLeftPressed(true);
@@ -142,7 +155,7 @@ export default function Game() {
     // keyup
     scene.actionManager.registerAction(
       new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, function (evt) {
-        if (evt.sourceEvent.type == "keyup" && !GameManager.isPaused) {
+        if (evt.sourceEvent.type == "keyup") {
           switch (evt.sourceEvent.key.toLowerCase()) {
             case "a": {
               setLeftPressed(false);
@@ -160,6 +173,7 @@ export default function Game() {
       })
     );
 
+    setStartButtonDialogIsOpen(true);
   };
 
   return (
@@ -196,7 +210,7 @@ export default function Game() {
           </Engine>
         </Paper>
       </Grid>
-      <Dialog maxWidth={"xl"} open={endVideoDialogIsOpen} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
+      <Dialog maxWidth={"xl"} open={endVideoDialogIsOpen}>
         <DialogContent>
           <Grid container alignItems={"center"} flexDirection={"column"}>
             <Grid item>
@@ -224,6 +238,26 @@ export default function Game() {
             <Grid item>
               <Button color={"info"} variant="contained" onClick={resetGame}>
                 Reset Game
+              </Button>
+            </Grid>
+          </Grid>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        maxWidth={"md"}
+        open={startButtonDialogIsOpen}
+        hideBackdrop={true}
+      >
+        <DialogContent>
+          <Grid container alignItems={"center"} flexDirection={"column"}>
+            <Grid item>
+              <Typography color={"black"} fontSize={60} fontFamily={"Arial"}>
+                Ready?
+              </Typography>
+            </Grid>
+            <Grid item>
+              <Button color={"info"} variant="contained" onClick={startGame}>
+                START
               </Button>
             </Grid>
           </Grid>

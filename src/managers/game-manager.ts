@@ -1,6 +1,7 @@
 import AssetManager from "./asset-manager";
 import * as core from "@babylonjs/core";
 import DeathStarManager from "./death-star-manager";
+import { LaserManager } from "./laser-manager";
 
 export default class GameManager {
 
@@ -8,6 +9,7 @@ export default class GameManager {
     static screenCapHasClicked: boolean = false;
     static youTubeEndingVideoURL: string = 'https://www.youtube.com/watch?v=Tj-GZJhfBmI';
     static endingVideoEndSeconds: number = 112;
+    //static endingVideoEndSeconds: number = 98; // for debug
     static endingVideoStartSeconds: number = 97;
     static hasReset: boolean = false;
 
