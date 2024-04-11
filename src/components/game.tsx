@@ -7,7 +7,7 @@ import "@babylonjs/loaders";
 import { useState } from "react";
 import AssetManager from "../managers/asset-manager";
 import GameManager from "../managers/game-manager";
-import { Button, Dialog, DialogContent, Grid, Paper, Slide, Typography } from "@mui/material";
+import { Button, Dialog, DialogContent, Grid, Paper, Typography } from "@mui/material";
 import { LaserManager } from "../managers/laser-manager";
 import DeathStarManager from "../managers/death-star-manager";
 import ReactPlayer from "react-player";
@@ -31,16 +31,16 @@ export default function Game() {
 
     const { xwingMesh, flyCamera } = AssetManager;
     if (xwingMesh && flyCamera) {
-      const rotationSpeed: number = 0.03;
+
 
       if (leftPressed) {
-        xwingMesh.rotation.z += rotationSpeed;
-        flyCamera.rotation.z += rotationSpeed;
+        xwingMesh.rotation.z += GameManager.rotationSpeed;
+        flyCamera.rotation.z += GameManager.rotationSpeed;
       }
 
       if (rightPressed) {
-        xwingMesh.rotation.z -= rotationSpeed;
-        flyCamera.rotation.z -= rotationSpeed;
+        xwingMesh.rotation.z -= GameManager.rotationSpeed;
+        flyCamera.rotation.z -= GameManager.rotationSpeed;
       }
     }
   };
@@ -78,7 +78,13 @@ export default function Game() {
     }
 
     if (!GameManager.hasReset) {
-      AssetManager.introAudio?.play();
+
+      if (GameManager.isDeveloperMode) {
+        AssetManager.introAudio?.play(0, 0, 1);
+      } else {
+        AssetManager.introAudio?.play();
+      }
+
       GameManager.isPaused = true;
       GameManager.screenCapHasClicked = false;
       DeathStarManager.setupDeathStars();
@@ -90,6 +96,10 @@ export default function Game() {
   };
 
   const onSceneMount = (args: SceneEventArgs) => {
+
+    //-----||||||| Developer Mode ||||||||||
+    GameManager.isDeveloperMode = true; // set to true to skip audio
+
     AssetManager.scene = args.scene;
     AssetManager.canvas = args.canvas;
     const { scene } = AssetManager;
@@ -108,7 +118,6 @@ export default function Game() {
 
     SceneLoader.ImportMeshAsync("", "/static/3dmodels/", "deathstar.glb", scene).then((result: ISceneLoaderAsyncResult) => {
       DeathStarManager.originalDeathStarMesh = result.meshes[0];
-      //DeathStarManager.setupDeathStars();
     });
 
     scene.actionManager = new ActionManager(scene);
@@ -216,7 +225,7 @@ export default function Game() {
           <Grid container alignItems={"center"} flexDirection={"column"}>
             <Grid item>
               <Typography color={"black"} fontSize={40} fontFamily={"Arial"}>
-                You're Champion of the Universe!
+                You're Champion of the Galaxy!
               </Typography>
             </Grid>
             <Grid item>

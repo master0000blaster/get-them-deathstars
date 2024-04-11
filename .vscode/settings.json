@@ -2,7 +2,7 @@
   "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
   "eslint.format.enable": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
   "editor.formatOnPaste": false, // required
   "editor.formatOnType": false, // required
@@ -14,5 +14,8 @@
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
   } // optional but recommended
 }

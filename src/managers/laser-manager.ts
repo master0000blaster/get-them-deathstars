@@ -22,7 +22,11 @@ export class LaserManager {
 
                     const explosionSoundEnded = () => {
                         if (AssetManager.outroAudio) {
-                            AssetManager.outroAudio.play(1);
+                            if (!GameManager.isDeveloperMode) {
+                                AssetManager.outroAudio.play(1);
+                            } else {
+                                AssetManager.outroAudio.play(0, 0, 1);
+                            }
                         }
                     };
 

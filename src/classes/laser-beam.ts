@@ -18,7 +18,9 @@ export class LaserBeam {
     maxFrames: number = 60;
     laserMoveIncrement: number = 8;
     isAHit: boolean = false;
+
     onLaserHitCallBack: (laserBeam: LaserBeam) => void;
+
     constructor(flyCamera: FlyCamera, scene: Scene, laserHitCallback: (laserBeam: LaserBeam) => void) {
         this.flyCamera = flyCamera;
         this.scene = scene;

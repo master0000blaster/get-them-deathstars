@@ -47,11 +47,11 @@ export default class DeathStarManager {
             DeathStarManager.deathStars.push(new DeathStar(deathStarMesh));
 
             for (let i: number = 0; i < 49; i++) {
-                const newDeathStar = deathStarMesh.clone('deathstar' + (i + 1), null, false);
+                const newDeathStarMesh = deathStarMesh.clone('deathstar' + (i + 1), null, false);
 
-                if (newDeathStar) {
-                    newDeathStar.isVisible = true;
-                    DeathStarManager.deathStars.push(new DeathStar(newDeathStar));
+                if (newDeathStarMesh) {
+                    newDeathStarMesh.isVisible = true;
+                    DeathStarManager.deathStars.push(new DeathStar(newDeathStarMesh));
                 }
             }
         }
