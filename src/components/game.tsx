@@ -13,9 +13,10 @@ import DeathStarManager from "../managers/death-star-manager";
 import ReactPlayer from "react-player";
 
 export default function Game() {
+
   const [leftPressed, setLeftPressed] = useState(false);
   const [rightPressed, setRightPressed] = useState(false);
-  const [startButtonDialogIsOpen, setStartButtonDialogIsOpen] = useState(false);
+  const [startDisplayIsVisible, setStartDisplayIsVisible] = useState(true);
   const [endVideoDialogIsOpen, setEndVideoDialogIsOpen] = useState(false);
   const [endVideoIsPlaying, setEndVideoIsPlaying] = useState(false);
 
@@ -31,7 +32,6 @@ export default function Game() {
 
     const { xwingMesh, flyCamera } = AssetManager;
     if (xwingMesh && flyCamera) {
-
 
       if (leftPressed) {
         xwingMesh.rotation.z += GameManager.rotationSpeed;
@@ -52,6 +52,7 @@ export default function Game() {
 
   const endingEnded = () => {
     setEndVideoIsPlaying(false);
+    GameManager.letGoOfPointer();
   };
 
   const fireLaser = () => {
@@ -60,7 +61,7 @@ export default function Game() {
 
   const resetGame = () => {
     setEndVideoDialogIsOpen(false);
-    setStartButtonDialogIsOpen(true);
+    setStartDisplayIsVisible(true);
   };
 
   const introLoaded = () => {
@@ -71,7 +72,7 @@ export default function Game() {
   };
 
   const startGame = () => {
-    setStartButtonDialogIsOpen(false);
+    setStartDisplayIsVisible(false);
 
     if (core.Engine.audioEngine && core.Engine.audioEngine.audioContext) {
       core.Engine.audioEngine.audioContext.resume();
@@ -123,6 +124,7 @@ export default function Game() {
     scene.actionManager = new ActionManager(scene);
 
     scene.onPointerObservable.add((pointerInfo: core.PointerInfo) => {
+
       if (!GameManager.isPaused) {
         switch (pointerInfo.type) {
           case PointerEventTypes.POINTERDOWN: {
@@ -183,12 +185,18 @@ export default function Game() {
       })
     );
 
-    setStartButtonDialogIsOpen(true);
+    setStartDisplayIsVisible(true);
+  };
+
+  const endVideoOnClose = () => {
+    setEndVideoDialogIsOpen(false);
+    setStartDisplayIsVisible(true);
   };
 
   return (
     <Grid container flexDirection={"column"}>
       <h2>Get them Death Stars</h2>
+
       <Grid item alignItems={"flex-start"}>
         <Grid container item justifyContent={"space-between"} flexDirection={"row"}>
           <Grid item>
@@ -220,7 +228,7 @@ export default function Game() {
           </Engine>
         </Paper>
       </Grid>
-      <Dialog maxWidth={"xl"} open={endVideoDialogIsOpen}>
+      <Dialog maxWidth={"xl"} open={endVideoDialogIsOpen} onClose={endVideoOnClose}>
         <DialogContent>
           <Grid container alignItems={"center"} flexDirection={"column"}>
             <Grid item>
@@ -253,26 +261,25 @@ export default function Game() {
           </Grid>
         </DialogContent>
       </Dialog>
-      <Dialog
-        maxWidth={"md"}
-        open={startButtonDialogIsOpen}
-        hideBackdrop={true}
-      >
-        <DialogContent>
-          <Grid container alignItems={"center"} flexDirection={"column"}>
-            <Grid item>
-              <Typography color={"black"} fontSize={60} fontFamily={"Arial"}>
-                Ready?
-              </Typography>
-            </Grid>
-            <Grid item>
-              <Button color={"info"} variant="contained" onClick={startGame}>
-                START
-              </Button>
-            </Grid>
+      <Paper elevation={8} style={{ position: "relative", top: "-400px", display: startDisplayIsVisible ? "block" : "none" }} >
+        <Grid container
+          alignItems={"center"}
+          alignContent={"space-around"}
+          padding={4}
+          justifyContent={"space-around"}
+          flexDirection={"column"}>
+          <Grid item>
+            <Typography color={"black"} fontSize={60} fontFamily={"Arial"}>
+              Ready?
+            </Typography>
           </Grid>
-        </DialogContent>
-      </Dialog>
+          <Grid item>
+            <Button color={"info"} variant="contained" onClick={startGame}>
+              START
+            </Button>
+          </Grid>
+        </Grid>
+      </Paper>
     </Grid>
   );
 }

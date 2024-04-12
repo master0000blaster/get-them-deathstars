@@ -1,5 +1,4 @@
 import AssetManager from "./asset-manager";
-import * as core from "@babylonjs/core";
 import DeathStarManager from "./death-star-manager";
 
 export default class GameManager {
@@ -8,11 +7,11 @@ export default class GameManager {
     static isPaused: boolean = true;
     static screenCapHasClicked: boolean = false;
     static youTubeEndingVideoURL: string = 'https://www.youtube.com/watch?v=Tj-GZJhfBmI';
-    //static endingVideoEndSeconds: number = 112;
-    static endingVideoEndSeconds: number = 98; // for debug
+    static endingVideoEndSeconds: number = !GameManager.isDeveloperMode ? 112 : 98;
     static endingVideoStartSeconds: number = 97;
     static rotationSpeed: number = 0.03;
     static hasReset: boolean = false;
+    static pointerId?: number = undefined;
 
     static resetGame = () => {
         GameManager.hasReset = true;
@@ -22,9 +21,8 @@ export default class GameManager {
         GameManager.isPaused = false;
     };
 
-    static createPointerLock = (scene: core.Scene | undefined) => {
-        const canvas = scene?.getEngine().getRenderingCanvas();
-
+    static createPointerLock = () => {
+        const canvas = AssetManager.scene?.getEngine().getRenderingCanvas();
         if (canvas) {
             canvas.addEventListener("click", event => {
                 canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
@@ -32,6 +30,13 @@ export default class GameManager {
                     canvas.requestPointerLock();
                 }
             }, false);
+        }
+    };
+
+    static letGoOfPointer = () => {
+        const canvas = AssetManager.scene?.getEngine().getRenderingCanvas();
+        if (canvas && GameManager.pointerId) {
+            canvas.releasePointerCapture(GameManager.pointerId);
         }
     };
 }
