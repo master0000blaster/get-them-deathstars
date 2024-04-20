@@ -3,14 +3,14 @@ import GameManager from "./game-manager";
 
 export default class AssetManager {
 
-    static flyCamera: FlyCamera | undefined;
-    static xwingMesh: AbstractMesh | undefined;
-    static scene: Scene | undefined;
-    static canvas: HTMLCanvasElement | undefined;
-    static pewSound: Sound | undefined;
-    static introAudio: Sound | undefined;
-    static outroAudio: Sound | undefined;
-    static explosionSound: Sound | undefined;
+    static flyCamera?: FlyCamera;
+    static xwingMesh?: AbstractMesh;
+    static scene?: Scene;
+    static canvas?: HTMLCanvasElement;
+    static pewSound?: Sound;
+    static introAudio?: Sound;
+    static outroAudio?: Sound;
+    static explosionSound?: Sound;
 
     static resetCameraPosition = () => {
         if (AssetManager.flyCamera) {

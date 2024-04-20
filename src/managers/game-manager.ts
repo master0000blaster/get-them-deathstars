@@ -3,15 +3,22 @@ import DeathStarManager from "./death-star-manager";
 
 export default class GameManager {
 
-    static isDeveloperMode: boolean = false;
+    /// -------------------------- DEVELOPER MODE ----------------- !!!!!!!!!!!!!
+    /// -------------------------- DEVELOPER MODE ----------------- !!!!!!!!!!!!!
+    // skips most dialog and ending video
+    static isDeveloperMode: boolean = true;
+    /// -------------------------- DEVELOPER MODE ----------------- !!!!!!!!!!!!!
+    /// -------------------------- DEVELOPER MODE ----------------- !!!!!!!!!!!!!
+
+
     static isPaused: boolean = true;
     static screenCapHasClicked: boolean = false;
-    static youTubeEndingVideoURL: string = 'https://www.youtube.com/watch?v=Tj-GZJhfBmI';
-    static endingVideoEndSeconds: number = !GameManager.isDeveloperMode ? 112 : 98;
-    static endingVideoStartSeconds: number = 97;
+    static youTubeOutroVideoURL: string = 'https://www.youtube.com/watch?v=Tj-GZJhfBmI';
+    static outroVideoEndSeconds: number = !GameManager.isDeveloperMode ? 112 : 98;
+    static outroVideoStartSeconds: number = 97;
     static rotationSpeed: number = 0.03;
     static hasReset: boolean = false;
-    static pointerId?: number = undefined;
+    static pointerId: number = 0;
 
     static resetGame = () => {
         GameManager.hasReset = true;
@@ -23,19 +30,21 @@ export default class GameManager {
 
     static createPointerLock = () => {
         const canvas = AssetManager.scene?.getEngine().getRenderingCanvas();
-        if (canvas) {
-            canvas.addEventListener("click", event => {
-                canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
-                if (canvas.requestPointerLock) {
-                    canvas.requestPointerLock();
-                }
-            }, false);
-        }
+        if (!canvas) return;
+
+        canvas.addEventListener("click", event => {
+            canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
+            if (canvas.requestPointerLock) {
+                canvas.requestPointerLock();
+            }
+        }, false);
     };
 
     static letGoOfPointer = () => {
+
         const canvas = AssetManager.scene?.getEngine().getRenderingCanvas();
-        if (canvas && GameManager.pointerId) {
+
+        if (canvas && canvas.releasePointerCapture) {
             canvas.releasePointerCapture(GameManager.pointerId);
         }
     };

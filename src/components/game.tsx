@@ -31,28 +31,30 @@ export default function Game() {
     LaserManager.advanceLaserBeamPositions();
 
     const { xwingMesh, flyCamera } = AssetManager;
-    if (xwingMesh && flyCamera) {
+    if (!xwingMesh || !flyCamera) return;
 
-      if (leftPressed) {
-        xwingMesh.rotation.z += GameManager.rotationSpeed;
-        flyCamera.rotation.z += GameManager.rotationSpeed;
-      }
+    if (leftPressed) {
+      xwingMesh.rotation.z += GameManager.rotationSpeed;
+      flyCamera.rotation.z += GameManager.rotationSpeed;
+    }
 
-      if (rightPressed) {
-        xwingMesh.rotation.z -= GameManager.rotationSpeed;
-        flyCamera.rotation.z -= GameManager.rotationSpeed;
-      }
+    if (rightPressed) {
+      xwingMesh.rotation.z -= GameManager.rotationSpeed;
+      flyCamera.rotation.z -= GameManager.rotationSpeed;
     }
   };
 
   const outroEnded = () => {
+    GameManager.letGoOfPointer();
     setEndVideoDialogIsOpen(true);
     setEndVideoIsPlaying(true);
   };
 
   const endingEnded = () => {
-    setEndVideoIsPlaying(false);
     GameManager.letGoOfPointer();
+    setEndVideoDialogIsOpen(false);
+    setEndVideoIsPlaying(false);
+    resetGame();
   };
 
   const fireLaser = () => {
@@ -60,6 +62,7 @@ export default function Game() {
   };
 
   const resetGame = () => {
+    GameManager.letGoOfPointer();
     setEndVideoDialogIsOpen(false);
     setStartDisplayIsVisible(true);
   };
@@ -99,7 +102,7 @@ export default function Game() {
   const onSceneMount = (args: SceneEventArgs) => {
 
     //-----||||||| Developer Mode ||||||||||
-    //GameManager.isDeveloperMode = true; // set to true to skip audio
+    GameManager.isDeveloperMode = true; // set to true to skip audio
 
     AssetManager.scene = args.scene;
     AssetManager.canvas = args.canvas;
@@ -238,7 +241,7 @@ export default function Game() {
             </Grid>
             <Grid item>
               <ReactPlayer
-                url={GameManager.youTubeEndingVideoURL}
+                url={GameManager.youTubeOutroVideoURL}
                 onEnded={endingEnded}
                 playing={endVideoIsPlaying}
                 config={{
@@ -246,8 +249,8 @@ export default function Game() {
                     playerVars: {
                       // https://developers.google.com/youtube/player_parameters
                       autoplay: 0,
-                      start: GameManager.endingVideoStartSeconds,
-                      end: GameManager.endingVideoEndSeconds,
+                      start: GameManager.outroVideoStartSeconds,
+                      end: GameManager.outroVideoEndSeconds,
                     },
                   },
                 }}

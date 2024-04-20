@@ -6,10 +6,10 @@ import DeathStar from "../classes/death-star";
 
 export default class DeathStarManager {
 
-    static explosionParticleSet: core.ParticleSystemSet | undefined;
-    static deathStarGroupCollisionMesh: Mesh | undefined;
+    static explosionParticleSet?: core.ParticleSystemSet;
+    static deathStarGroupCollisionMesh?: Mesh;
     static deathStars: DeathStar[] = [];
-    static originalDeathStarMesh: AbstractMesh | undefined;
+    static originalDeathStarMesh?: AbstractMesh;
 
     static blowUp = () => {
 

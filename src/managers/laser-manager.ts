@@ -7,35 +7,36 @@ export class LaserManager {
     static laserBeams: LaserBeam[] = [];
 
     static fireLaser = (): void => {
-        if (!GameManager.isPaused && AssetManager.flyCamera && AssetManager.scene) {
-            LaserManager.laserBeams.push(new LaserBeam(AssetManager.flyCamera, AssetManager.scene, (laserBeam) => {
-                GameManager.isPaused = true;
 
-                LaserManager.laserBeams.forEach((lb) => {
-                    lb.laserMesh.dispose();
-                });
+        if (GameManager.isPaused || !AssetManager.flyCamera || !AssetManager.scene) return;
 
-                LaserManager.laserBeams = [];
-                DeathStarManager.blowUp();
+        LaserManager.laserBeams.push(new LaserBeam(AssetManager.flyCamera, AssetManager.scene, (laserBeam) => {
+            GameManager.isPaused = true;
 
-                if (AssetManager.explosionSound) {
+            LaserManager.laserBeams.forEach((lb) => {
+                lb.laserMesh.dispose();
+            });
 
-                    const explosionSoundEnded = () => {
-                        if (AssetManager.outroAudio) {
-                            if (!GameManager.isDeveloperMode) {
-                                AssetManager.outroAudio.play(1);
-                            } else {
-                                AssetManager.outroAudio.play(0, 0, 1);
-                            }
+            LaserManager.laserBeams = [];
+            DeathStarManager.blowUp();
+
+            if (AssetManager.explosionSound) {
+
+                const explosionSoundEnded = () => {
+                    if (AssetManager.outroAudio) {
+                        if (!GameManager.isDeveloperMode) {
+                            AssetManager.outroAudio.play(1);
+                        } else {
+                            AssetManager.outroAudio.play(0, 0, 1);
                         }
-                    };
+                    }
+                };
 
-                    AssetManager.explosionSound.onended = explosionSoundEnded;
-                }
+                AssetManager.explosionSound.onended = explosionSoundEnded;
+            }
 
-                AssetManager.explosionSound?.play();
-            }));
-        }
+            AssetManager.explosionSound?.play();
+        }));
     };
 
     static removeLaser = (laser: LaserBeam): void => {
