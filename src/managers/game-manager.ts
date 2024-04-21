@@ -5,7 +5,7 @@ export default class GameManager {
 
     /// -------------------------- DEVELOPER MODE ----------------- !!!!!!!!!!!!!
     /// -------------------------- DEVELOPER MODE ----------------- !!!!!!!!!!!!!
-    // skips most dialog and ending video
+    // skips most dialog and ending video. set to false before publish
     static isDeveloperMode: boolean = true;
     /// -------------------------- DEVELOPER MODE ----------------- !!!!!!!!!!!!!
     /// -------------------------- DEVELOPER MODE ----------------- !!!!!!!!!!!!!
@@ -18,7 +18,6 @@ export default class GameManager {
     static outroVideoStartSeconds: number = 97;
     static rotationSpeed: number = 0.03;
     static hasReset: boolean = false;
-    static pointerId: number = 0;
 
     static resetGame = () => {
         GameManager.hasReset = true;
@@ -28,7 +27,7 @@ export default class GameManager {
         GameManager.isPaused = false;
     };
 
-    static createPointerLock = () => {
+    static grabPointer = () => {
         const engine = AssetManager.scene?.getEngine();
         if (!engine) return;
         engine.enterPointerlock();

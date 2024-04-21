@@ -1,18 +1,8 @@
 import { Container, Grid } from "@mui/material";
 import Game from "./components/game";
 import { Global } from "@emotion/react";
-import GameManager from "./managers/game-manager";
 
 export default function App() {
-
-  const rootElement = document.getElementById("root");
-
-  rootElement!.addEventListener("pointerdown", (event) => {
-    GameManager.pointerId = event.pointerId;
-  },
-    false,
-  );
-
   return (
     <Container maxWidth="lg">
       <Global

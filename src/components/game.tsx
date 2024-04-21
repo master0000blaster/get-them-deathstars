@@ -11,7 +11,7 @@ import { Button, Dialog, DialogContent, Grid, Paper, Typography } from "@mui/mat
 import { LaserManager } from "../managers/laser-manager";
 import DeathStarManager from "../managers/death-star-manager";
 import ReactPlayer from "react-player";
-
+import Chip from '@mui/material/Chip';
 export default function Game() {
 
   const [leftPressed, setLeftPressed] = useState(false);
@@ -198,11 +198,12 @@ export default function Game() {
       <h2>Get them Death Stars</h2>
 
       <Grid item alignItems={"flex-start"}>
-        <Grid container item justifyContent={"space-between"} flexDirection={"row"}>
-          <Grid item>
+        <Grid container spacing={3} item justifyContent={"space-between"} flexDirection={"row"}>
+          <Grid item container>
             W: Forward | S: Backward | A: Roll Left | D: Roll Right | Fire: Left Mouse
           </Grid>
-          <Grid item>
+          <Grid item container flexDirection={"row"} justifyContent={"space-between"} alignContent={"flex-end"}>
+            <Chip label="This game will eat your mouse pointer while you are playing. Press ESC at anytime to release the pointer lock." />
             <Button color={"info"} variant="contained" href="https://github.com/master0000blaster/get-them-deathstars" target={"_blank"}>
               <img style={{ maxWidth: 50 }} src="/static/images/GitHub_Logo.png" />
               Project

@@ -22,7 +22,7 @@ export default class AssetManager {
     static setupFlyCamera = () => {
 
         const { flyCamera, xwingMesh } = AssetManager;
-        GameManager.createPointerLock();
+        GameManager.grabPointer();
 
         if (flyCamera) {
             flyCamera.position = new Vector3(0, 0, 0);
