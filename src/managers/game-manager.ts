@@ -6,7 +6,7 @@ export default class GameManager {
     /// -------------------------- DEVELOPER MODE ----------------- !!!!!!!!!!!!!
     /// -------------------------- DEVELOPER MODE ----------------- !!!!!!!!!!!!!
     // skips most dialog and ending video. set to false before publish
-    static isDeveloperMode: boolean = true;
+    static isDeveloperMode: boolean = false;
     /// -------------------------- DEVELOPER MODE ----------------- !!!!!!!!!!!!!
     /// -------------------------- DEVELOPER MODE ----------------- !!!!!!!!!!!!!
 
