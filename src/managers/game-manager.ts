@@ -29,23 +29,14 @@ export default class GameManager {
     };
 
     static createPointerLock = () => {
-        const canvas = AssetManager.scene?.getEngine().getRenderingCanvas();
-        if (!canvas) return;
-
-        canvas.addEventListener("click", event => {
-            canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
-            if (canvas.requestPointerLock) {
-                canvas.requestPointerLock();
-            }
-        }, false);
+        const engine = AssetManager.scene?.getEngine();
+        if (!engine) return;
+        engine.enterPointerlock();
     };
 
     static letGoOfPointer = () => {
-
-        const canvas = AssetManager.scene?.getEngine().getRenderingCanvas();
-
-        if (canvas && canvas.releasePointerCapture) {
-            canvas.releasePointerCapture(GameManager.pointerId);
-        }
+        const engine = AssetManager.scene?.getEngine();
+        if (!engine) return;
+        engine.exitPointerlock();
     };
 }

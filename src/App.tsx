@@ -6,11 +6,13 @@ import GameManager from "./managers/game-manager";
 export default function App() {
 
   const rootElement = document.getElementById("root");
+
   rootElement!.addEventListener("pointerdown", (event) => {
     GameManager.pointerId = event.pointerId;
   },
     false,
   );
+
   return (
     <Container maxWidth="lg">
       <Global

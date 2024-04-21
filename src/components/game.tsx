@@ -101,9 +101,6 @@ export default function Game() {
 
   const onSceneMount = (args: SceneEventArgs) => {
 
-    //-----||||||| Developer Mode ||||||||||
-    GameManager.isDeveloperMode = true; // set to true to skip audio
-
     AssetManager.scene = args.scene;
     AssetManager.canvas = args.canvas;
     const { scene } = AssetManager;
