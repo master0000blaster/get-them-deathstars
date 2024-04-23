@@ -80,6 +80,7 @@ export default function Game() {
     setStartDisplayIsVisible(false);
     GameManager.isPaused = false;
     GameManager.resetGame();
+    setSkipIntroIsVisible(false);
     GameManager.grabPointer();
   };
 
