@@ -30,6 +30,9 @@ export class LaserManager {
                             AssetManager.outroAudio.play(0, 0, 1);
                         }
                     }
+
+                    GameManager.isPaused = true;
+                    GameManager.letGoOfPointer();
                 };
 
                 AssetManager.explosionSound.onended = explosionSoundEnded;

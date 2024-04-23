@@ -1,5 +1,4 @@
 import { AbstractMesh, FlyCamera, Scene, Sound, Vector3 } from "@babylonjs/core";
-import GameManager from "./game-manager";
 
 export default class AssetManager {
 
@@ -22,8 +21,6 @@ export default class AssetManager {
     static setupFlyCamera = () => {
 
         const { flyCamera, xwingMesh } = AssetManager;
-        GameManager.grabPointer();
-
         if (flyCamera) {
             flyCamera.position = new Vector3(0, 0, 0);
             flyCamera.rotation = new Vector3(0, 0, 0);
